@@ -403,3 +403,279 @@ a{ color:inherit; }
 }
 .expired-screen h1{ font-size:40px; margin:0 0 12px; }
 .expired-screen p{ font-size:17px; opacity:.85; max-width:520px; }
+
+/* =====================================================================
+   RESPONSIVE – Tablet ≤ 900px
+   ===================================================================== */
+@media (max-width:900px){
+  /* Biến root thu nhỏ */
+  :root{
+    --room-gap:         clamp(18px,3vw,28px);
+    --room-col-gap:     16px;
+    --thumb-h:          clamp(72px,10vw,100px);
+    --thumb-gap:        10px;
+  }
+
+  .container{ padding:0 20px; }
+
+  /* Hero */
+  .hero{ padding:50px 0 14vw; }
+  .hero__eyebrow{ letter-spacing:.18em; font-size:clamp(16px,2.2vw,26px); }
+  .hero__title{ font-size:clamp(36px,6vw,62px); }
+  .hero__band span{ font-size:clamp(24px,5vw,52px); padding:2px 22px 10px; }
+  .hero__subtitle{ font-size:clamp(14px,1.5vw,17px); max-width:580px; }
+  .btn--primary{ font-size:16px; padding:13px 38px; }
+
+  /* Intro: bỏ justify ở tablet nhỏ hơn */
+  .intro__text{ text-align:left; }
+  .intro__text p{ font-size:clamp(14px,1.4vw,16px); }
+
+  /* Room windows */
+  .window__body{ padding:24px clamp(14px,2.5vw,32px) 28px; }
+  .window__title{ font-size:clamp(13px,1.7vw,20px); }
+
+  /* Room grid: 2 cột nhưng thu nhỏ card */
+  .room__grid{ grid-template-columns:minmax(0,340px) 1fr; }
+  .room__grid--reverse{ grid-template-columns:1fr minmax(0,280px); }
+  .room__grid--portrait-left{ grid-template-columns:minmax(0,280px) 1fr; }
+
+  /* Text trong room */
+  .room__text p{ font-size:clamp(13px,1.2vw,15px); text-align:left; }
+
+  /* Thumbnail row: không wrap */
+  .room__thumbs--row{ flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .room__thumbs--row img{ height:var(--thumb-h); flex-shrink:0; }
+
+  /* Button pill */
+  .btn--pill{ font-size:clamp(14px,1.8vw,18px); padding:12px 36px; }
+
+  /* Guide */
+  .guide__step{ gap:22px; }
+  .guide__icon{ width:72px; flex:0 0 72px; }
+  .guide__step p{ font-size:clamp(13px,1.2vw,15px); text-align:left; }
+
+  /* Footer */
+  .footer__inner{ grid-template-columns:auto 1fr 1fr; gap:16px; align-items:start; }
+  .footer__logo{ width:90px; }
+  .footer__col p{ font-size:11px; }
+
+  /* Product panel 3D */
+  .product-panel{
+    width:min(380px,88vw);
+    padding:18px 18px 22px;
+  }
+}
+
+/* =====================================================================
+   RESPONSIVE – Mobile ≤ 600px
+   Nguyên tắc: mỗi panel = 1 màn (100svh), scroll snap, KHÔNG cuộn nội bộ.
+   Nội dung được thu nhỏ đủ để vừa vặn trong màn hình.
+   ===================================================================== */
+@media (max-width:600px){
+  :root{
+    --room-gap:     10px;
+    --room-col-gap: 8px;
+    --thumb-h:      64px;
+    --thumb-gap:    6px;
+    --thumb-radius: 8px;
+    --card-radius:  9px;
+  }
+
+  .container{ padding:0 10px; }
+
+  /* ── Scroll snap: BẬT, mỗi panel = 1 màn, KHÔNG cuộn nội bộ ── */
+  .deck{
+    height:100svh;
+    overflow-y:scroll;
+    scroll-snap-type:y mandatory;
+    scroll-behavior:smooth;
+  }
+  .panel{
+    scroll-snap-align:start;
+    height:100svh;
+    overflow:hidden;
+  }
+
+  /* ── Hero ── */
+  .panel--full.hero{
+    height:100svh; min-height:100svh;
+    padding:36px 0 14vw;
+    display:flex; flex-direction:column; justify-content:center;
+    overflow:visible;
+  }
+  .hero__logo-wrap{ width:clamp(130px,42vw,185px); height:clamp(72px,23vw,100px); }
+  .hero__eyebrow{ font-size:clamp(10px,3vw,14px); letter-spacing:.08em; margin-bottom:7px; }
+  .hero__title{ font-size:clamp(24px,7.5vw,38px); margin-bottom:6px; }
+  .hero__band span{ font-size:clamp(14px,5.4vw,28px); padding:2px 10px 5px; border-radius:7px; }
+  .hero__subtitle{ font-size:12px; max-width:100%; margin-bottom:18px; }
+  .btn--primary{ font-size:13.5px; padding:10px 26px; }
+
+  /* ── Intro: panel = 100svh, KHÔNG cuộn ── */
+  .panel--full.intro{
+    height:100svh; min-height:100svh;
+    padding:0; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .intro > .container{
+    overflow:hidden;
+    padding-top:20px;
+    padding-bottom:20px;
+  }
+  .intro__text{ text-align:left; }
+  .intro__text p{ font-size:12px; margin-bottom:9px; line-height:1.45; }
+
+  /* ── Split title: NHỎ HƠN ── */
+  .split-title{ font-size:clamp(14px,4.5vw,19px); gap:4px; margin-bottom:10px; }
+  .split-title__dark{ padding:2px 8px 4px; border-radius:6px; }
+
+  /* ── Room stage: 100svh, căn GIỮA dọc, KHÔNG cuộn ── */
+  .room-stage{
+    height:100svh; min-height:100svh;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    justify-content:safe center;   /* căn giữa dọc */
+    align-items:center;
+    padding:8px 0;
+    gap:6px;
+  }
+  /* Phủ màu của từng phòng lên toàn bộ màn hình mobile.
+     Khi khối cửa sổ co thấp hơn 100svh, phần dư không còn lộ nền trắng. */
+  .room-stage--red{ background:var(--red); }
+  .room-stage--blue{ background:var(--blue); }
+  .room-stage--green{ background:var(--green); }
+  .room-stage__head{ padding:0 10px; flex-shrink:0; width:100%; }
+  .room-stage .split-title{ margin:0; }
+
+  /* Room: không còn giãn (để toàn bộ khối được căn giữa) */
+  .room{ padding:0; margin-top:0; flex:0 1 auto; width:100%; display:flex; flex-direction:column; min-height:0; }
+
+  /* Window: tự co theo nội dung, có max-height để không vượt màn */
+  .window{
+    border-radius:10px;          /* bo đầy dưới vì không còn đủ 1 trang */
+    flex:0 1 auto;
+    width:calc(100% - 16px);
+    max-height:calc(100svh - 70px);  /* không chạm mép trên/dưới */
+    display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  .window__bar{
+    padding:7px 10px; gap:7px;
+    flex-shrink:0;
+  }
+  .dots i{ width:8px; height:8px; }
+  .window__title{
+    font-size:clamp(9.5px,2.4vw,12px);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    min-width:0;
+  }
+  /* Body vừa khít, KHÔNG cuộn */
+  .window__body{
+    padding:10px 10px 12px;
+    flex:0 1 auto;
+    overflow:hidden;
+  }
+
+  /* ── Room grid: stack dọc ── */
+  .room__grid,
+  .room__grid--reverse,
+  .room__grid--portrait-left{
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .room__media{ order:-1 !important; overflow:hidden; border-radius:8px; flex-shrink:0; }
+  /* Ảnh chính nhỏ hơn để nhường chỗ cho text + thumb */
+  .room__media img{ max-height:140px; object-fit:cover; width:100%; border-radius:0; }
+  .room__media--portrait img{ aspect-ratio:auto; max-height:130px; }
+
+  /* ── Text phòng ── */
+  .room__col{ gap:7px; }
+  .room__text p{
+    font-size:11.5px; text-align:left; color:#fff;
+    margin-bottom:6px; line-height:1.42;
+    /* Giới hạn 3 dòng mỗi đoạn tránh tràn */
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .room__text p:last-child{ margin-bottom:0; }
+
+  /* ── Thumbnail: lưới 2×2 ── */
+  .room__thumbs--grid,
+  .room__thumbs--row{
+    display:grid !important;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .room__thumbs--grid img,
+  .room__thumbs--row img{
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    border-radius:8px;
+    flex:none;
+  }
+
+  /* ── Button pill ── */
+  .btn--pill{ font-size:13px; padding:9px 28px; white-space:nowrap; }
+  .room__cta{ margin-top:3px; text-align:center; flex-shrink:0; }
+
+  /* ── Guide: 100svh, KHÔNG cuộn ── */
+  .guide-page{
+    height:100svh; min-height:100svh;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .guide{
+    flex:1; min-height:0;
+    overflow:hidden;
+    padding:16px 0 12px;
+    display:flex; flex-direction:column; justify-content:safe center;
+  }
+  .guide__lead{ font-size:12px; margin-bottom:14px; text-align:left; line-height:1.45; }
+  .guide__steps{ margin-bottom:16px; }
+  .guide__step{ flex-direction:row; align-items:flex-start; gap:10px; margin-bottom:12px; }
+  .guide__icon{ width:36px; flex:0 0 36px; }
+  .guide__step p{ font-size:12px; text-align:left; line-height:1.42; }
+  .btn--primary.btn--lg{ font-size:13.5px; padding:11px 26px; }
+
+  /* Footer ghim đáy */
+  .footer{ flex-shrink:0; padding:11px 0; }
+  .footer__inner{ grid-template-columns:1fr; gap:7px; text-align:center; }
+  .footer__logo{ margin:0 auto 2px; width:58px; }
+  .footer__col p{ font-size:10.5px; }
+  .footer__col a{ word-break:break-all; }
+
+  /* ── Museum topbar ── */
+  .museum__topbar{ padding:8px 11px; }
+  .museum__title{ font-size:11px; }
+  .museum__exit{ padding:5px 11px; font-size:12px; }
+  .museum__sound{ width:30px; height:30px; font-size:13px; }
+  .museum__hint{ font-size:10.5px; padding:8px 11px; gap:3px 9px; bottom:10px; }
+
+  /* ── Product panel 3D → bottom sheet ── */
+  .product-panel{
+    position:fixed; top:auto; bottom:0; left:0; right:0;
+    transform:none; width:100%;
+    max-height:68svh;
+    border-radius:16px 16px 0 0;
+    padding:14px 14px 22px;
+    box-shadow:0 -5px 24px rgba(0,0,0,.36);
+  }
+  .product-panel__close{ top:10px; right:12px; font-size:17px; }
+  .product-panel h3{ font-size:14.5px; }
+  .product-panel p{ font-size:12px; }
+  .product-panel__media img,
+  .product-panel__media video{ max-height:140px; }
+}
+
+/* =====================================================================
+   RESPONSIVE – Very small ≤ 380px  (iPhone SE, Galaxy A series)
+   ===================================================================== */
+@media (max-width:380px){
+  .hero__title{ font-size:clamp(24px,8.5vw,34px); }
+  .hero__band span{ font-size:clamp(14px,5.8vw,22px); padding:2px 10px 5px; }
+  .hero__eyebrow{ font-size:11px; }
+  .window__title{ font-size:10px; }
+  .btn--pill{ font-size:13.5px; padding:11px 26px; }
+  .product-panel{ max-height:72vh; padding:14px 13px 22px; }
+}
