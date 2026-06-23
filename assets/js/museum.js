@@ -218,29 +218,35 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
     const texLoader = new THREE.TextureLoader();
     texLoader.crossOrigin = 'anonymous';
 
-    // Lập bản đồ: mã bảng -> [các mesh dùng material đó]
+    // Lập bản đồ: mã bảng -> [{mesh, matIndex}] (giữ cả index slot vật liệu)
     const byBoard = new Map();
     scene.traverse((o) => {
       if (!o.isMesh) return;
       const mats = Array.isArray(o.material) ? o.material : [o.material];
-      for (const mm of mats) {
-        if (!mm || !mm.name) continue;
+      mats.forEach((mm, idx) => {
+        if (!mm || !mm.name) return;
         const k = boardKey(mm.name);
-        if (!k.startsWith('Image_Board')) continue;   // chỉ các bề mặt "bảng"
+        if (!k.startsWith('Image_Board')) return;   // chỉ các bề mặt "bảng"
         let arr = byBoard.get(k);
         if (!arr) { arr = []; byBoard.set(k, arr); }
-        if (arr.indexOf(o) === -1) arr.push(o);
-      }
+        // Tránh thêm cùng 1 cặp (mesh, idx) nhiều lần
+        if (!arr.find(e => e.mesh === o && e.matIndex === idx)) arr.push({ mesh: o, matIndex: idx });
+      });
     });
 
     for (const [id, info] of Object.entries(data)) {
       if (!info) continue;
-      const meshes = byBoard.get(boardKey(id));
-      if (!meshes || !meshes.length) continue;        // model không có bảng này -> bỏ qua
+      const entries = byBoard.get(boardKey(id));
+      if (!entries || !entries.length) continue;        // model không có bảng này -> bỏ qua
       // chỉ "bật click" khi bảng có nội dung thực (tránh hàng chục bảng rỗng cũng mở popup trống)
       if (!(info.title || info.desc || info.link || info.src)) continue;
 
-      for (const mesh of meshes) {
+      // Gom danh sách mesh duy nhất để đặt userData (1 mesh có thể có nhiều slot)
+      const meshSet = [];
+      for (const { mesh } of entries) {
+        if (!meshSet.includes(mesh)) meshSet.push(mesh);
+      }
+      for (const mesh of meshSet) {
         mesh.userData = Object.assign({}, mesh.userData, {
           title: info.title || id,
           desc: info.desc || '',
@@ -251,13 +257,14 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
         if (products.indexOf(mesh) === -1) products.push(mesh);
       }
 
-      if (info.src) applyBoardMedia(meshes, info, id, texLoader);
+      if (info.src) applyBoardMedia(entries, info, id, texLoader);
     }
   }
 
-  /* Phủ ảnh/video lên bề mặt tất cả mesh của một bảng (tải texture 1 lần dùng chung). */
-  function applyBoardMedia(meshes, info, id, texLoader) {
-    const setAll = (tex) => meshes.forEach((m) => setBoardMap(m, tex));
+  /* Phủ ảnh/video lên bề mặt tất cả mesh của một bảng (tải texture 1 lần dùng chung).
+     * entries = [{mesh, matIndex}] thay vì mảng mesh thô, để gán đúng slot material. */
+  function applyBoardMedia(entries, info, id, texLoader) {
+    const setAll = (tex) => entries.forEach(({ mesh, matIndex }) => setBoardMap(mesh, matIndex, tex));
     if (info.type === 'video') {
       const yt = youtubeId(info.src);
       if (yt) {
@@ -278,7 +285,7 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
       } else {
         // file video trực tiếp (.mp4…) -> phát ngay trên bề mặt bảng
         // Xóa video cũ (nếu có) trước khi tạo mới
-        meshes.forEach((m) => disposeOldBoardMedia(m));
+        entries.forEach(({ mesh, matIndex }) => disposeOldBoardMedia(mesh, matIndex));
         const v = document.createElement('video');
         v.src = info.src; v.loop = true; v.muted = true;
         v.crossOrigin = 'anonymous'; v.playsInline = true;
@@ -355,52 +362,65 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
     tex.needsUpdate = true;
   }
 
-  // Giải phóng texture/video cũ của một board mesh trước khi gán media mới.
+  // Giải phóng texture/video cũ của một board mesh (đúng slot) trước khi gán media mới.
   // Tránh ảnh cũ bị đè nhưng VRAM không được giải phóng (memory leak) và
   // tránh trường hợp texture cũ vẫn hiển thị khi material chưa update kịp.
-  function disposeOldBoardMedia(mesh) {
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    for (const mat of mats) {
-      if (!mat) continue;
-      // Chỉ dispose texture do chúng ta gắn (đánh dấu bằng userData._boardTex)
-      // để không vô tình xóa texture gốc của model.
-      if (mat._boardTex) {
-        // Nếu là VideoTexture, dừng video trước khi dispose
-        if (mat._boardTex.image && mat._boardTex.image.pause) {
-          mat._boardTex.image.pause();
-          mat._boardTex.image.src = '';
-        }
-        mat._boardTex.dispose();
-        mat._boardTex = null;
+  function disposeOldBoardMedia(mesh, matIndex) {
+    const matArr = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const idx = (matIndex != null) ? matIndex : 0;
+    const mat = matArr[idx];
+    if (!mat) return;
+    // Chỉ dispose texture do chúng ta gắn (đánh dấu bằng _boardTex)
+    // để không vô tình xóa texture gốc của model.
+    if (mat._boardTex) {
+      // Nếu là VideoTexture, dừng video trước khi dispose
+      if (mat._boardTex.image && mat._boardTex.image.pause) {
+        mat._boardTex.image.pause();
+        mat._boardTex.image.src = '';
       }
+      mat._boardTex.dispose();
+      mat._boardTex = null;
     }
   }
 
-  // Gán texture lên bề mặt bảng. Clone material để không ảnh hưởng bảng khác dùng
-  // chung vật liệu; đặt màu trắng để texture hiện đúng (cả unlit lẫn PBR).
-  // Dispose texture cũ trước khi gán mới để ảnh cũ không bị đè/còn sót lại.
-  function setBoardMap(mesh, tex) {
-    let mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+  // Gán texture lên đúng slot material của mesh bảng.
+  // Clone material lần đầu (khi chưa có _boardTex) để không ảnh hưởng các mesh
+  // khác dùng chung vật liệu; đặt màu trắng để texture hiện đúng màu thật.
+  // matIndex: index slot material trong mảng (hoặc undefined/0 nếu material đơn).
+  function setBoardMap(mesh, matIndex, tex) {
+    const isArr = Array.isArray(mesh.material);
+    const idx = (matIndex != null) ? matIndex : 0;
+    let mat = isArr ? mesh.material[idx] : mesh.material;
     if (!mat) return;
-    // Dispose texture cũ (nếu là texture do chúng ta gắn trước đó)
+
+    // Dispose texture cũ (nếu là texture do chúng ta gắn trước đó), reset về null
     if (mat._boardTex) {
       if (mat._boardTex.image && mat._boardTex.image.pause) {
         mat._boardTex.image.pause();
         mat._boardTex.image.src = '';
       }
       mat._boardTex.dispose();
+      mat._boardTex = null;   // QUAN TRỌNG: reset để điều kiện clone bên dưới hoạt động đúng
     }
-    // Không clone lại nếu material này đã là bản clone của chúng ta (có _boardTex)
-    // để tránh phát sinh hàng loạt material orphan qua nhiều lần upload.
+
+    // Clone material lần đầu tiên (chưa có _boardTex) để không làm bẩn material gốc
+    // của model (tránh ảnh hưởng các mesh khác cùng dùng material đó).
     if (!mat._boardTex) {
       mat = mat.clone();
+      // Gán ngay vào mesh TRƯỚC khi set map để Three.js cập nhật đúng
+      if (isArr) {
+        mesh.material = mesh.material.slice();   // clone mảng để không mutate mảng gốc
+        mesh.material[idx] = mat;
+      } else {
+        mesh.material = mat;
+      }
     }
+
     mat.map = tex;
     mat._boardTex = tex;     // đánh dấu để dispose lần sau
     if (mat.color) mat.color.set(0xffffff);
     mat.needsUpdate = true;
-    if (Array.isArray(mesh.material)) mesh.material[0] = mat;
-    else mesh.material = mat;
+
     // Căn chỉnh lại texture sau khi gán để fit đúng với khung bảng
     adjustTextureFit(tex, mesh);
   }
