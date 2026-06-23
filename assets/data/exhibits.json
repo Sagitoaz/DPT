@@ -127,11 +127,12 @@
     "link": "https://drive.google.com/file/d/1FHN6kYCopJvVcnWJ25JHdaOKluwj3tfq/view?usp=drive_link"
   },
   "Image_Board_Top_13": {
-    "type": "image",
-    "src": "",
-    "title": "",
+    "type": "video",
+    "src": "https://www.youtube.com/watch?v=v3AWD9iYza4&list=PLF_MtBnLSY92X9aDN_38nPDwtEULl_BKh",
+    "thumb": "assets/exhibits/Image_Board_Top_13_thumb_1782225446833.png",
+    "title": "nhóm của giang",
     "desc": "",
-    "link": ""
+    "descEn": "mai babi"
   },
   "Image_Board_Top_14": {
     "type": "image",
