@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Quản trị nội dung – Bảo tàng số 3D</title>
+  <link rel="icon" type="image/png" href="assets/img/favicon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body>
+  <header class="adm-header">
+    <div class="adm-wrap">
+      <h1>Quản trị nội dung Bảo tàng số 3D</h1>
+      <p>Thêm / sửa / xoá nội dung (ảnh, video, mô tả, liên kết) cho từng <b>bảng trưng bày</b> trong phòng 3D.
+         Mỗi bảng khớp với một <b>material</b> trong model — mã bảng dạng <code>Image_Board_01</code>,
+         <code>Image_Board_Left_03</code>, <code>Image_Board_Top_12</code>… Danh sách bảng đã nạp sẵn đầy đủ ở dưới;
+         bạn chỉ cần điền nội dung. Bảng để trống sẽ giữ ảnh có sẵn trong model và không bấm xem được.</p>
+    </div>
+  </header>
+
+  <main class="adm-wrap adm-main">
+
+    <!-- ================= 1. TOKEN ================= -->
+    <section class="adm-card">
+      <h2>1. Kết nối GitHub</h2>
+      <p class="adm-hint">
+        Dán <b>fine-grained token</b> chỉ cấp quyền <b>Contents: Read and write</b> cho repo
+        <code>Rei-1407/Web-DPT</code>. Token được lưu trong <b>trình duyệt này</b> (localStorage), không gửi đi đâu khác ngoài GitHub.
+      </p>
+      <div class="adm-token-row">
+        <input id="tokenInput" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false" />
+        <button id="saveTokenBtn" class="adm-btn adm-btn--primary" type="button">Lưu &amp; kiểm tra</button>
+        <button id="clearTokenBtn" class="adm-btn adm-btn--ghost" type="button">Xoá token</button>
+      </div>
+      <p id="tokenStatus" class="adm-status"></p>
+      <details class="adm-help">
+        <summary>Cách tạo token (bấm để xem)</summary>
+        <ol>
+          <li>Vào GitHub → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
+          <li><b>Repository access</b>: chọn <b>Only select repositories</b> → <code>Rei-1407/Web-DPT</code>.</li>
+          <li><b>Permissions</b> → <b>Repository permissions</b> → <b>Contents</b> = <b>Read and write</b>.</li>
+          <li>Generate → copy token (dạng <code>github_pat_…</code>) → dán vào ô trên.</li>
+        </ol>
+      </details>
+    </section>
+
+    <!-- ================= 2. BOARDS ================= -->
+    <section class="adm-card">
+      <div class="adm-toolbar">
+        <h2>2. Nội dung các bảng</h2>
+        <div class="adm-toolbar__actions">
+          <button id="reloadBtn" class="adm-btn adm-btn--ghost" type="button">↻ Tải lại</button>
+          <button id="addBtn" class="adm-btn" type="button">＋ Thêm bảng</button>
+          <button id="saveBtn" class="adm-btn adm-btn--primary" type="button">⬆ Lưu lên web</button>
+        </div>
+      </div>
+      <p id="saveStatus" class="adm-status"></p>
+      <div id="boardList" class="adm-list"></div>
+    </section>
+
+    <!-- ================= 3. ÂM THANH ================= -->
+    <section class="adm-card">
+      <div class="adm-toolbar">
+        <h2>3. Âm thanh phòng 3D</h2>
+        <div class="adm-toolbar__actions">
+          <button id="reloadSoundBtn" class="adm-btn adm-btn--ghost" type="button">↻ Tải lại</button>
+          <button id="saveSoundBtn" class="adm-btn adm-btn--primary" type="button">⬆ Lưu âm thanh</button>
+        </div>
+      </div>
+      <p class="adm-hint">
+        Nhạc nền phát khi vào phòng 3D và âm báo khi mở popup sản phẩm. Khi popup mở, nhạc nền tự nhỏ lại để người xem tập trung. Người xem có nút <b>🔊</b> ở góc trên để bật/tắt.
+        Để <b>trống</b> ô đường dẫn nhạc nền → dùng tiếng nền êm dịu tổng hợp sẵn; để trống ô âm báo popup → dùng tiếng “pop” mặc định.
+      </p>
+      <p id="soundStatus" class="adm-status"></p>
+
+      <label class="adm-check">
+        <input id="sEnabled" type="checkbox" /> <span>Bật âm thanh mặc định khi vào phòng (người xem vẫn có thể tắt)</span>
+      </label>
+
+      <fieldset class="adm-fieldset">
+        <legend>Nhạc nền</legend>
+        <label class="adm-field">Đường dẫn nhạc nền <span class="adm-muted">(mp3/ogg trong repo hoặc link trực tiếp; để trống = tiếng nền tổng hợp)</span>
+          <input id="sBgSrc" placeholder="assets/audio/ambient.mp3  hoặc  https://…" autocomplete="off" />
+        </label>
+        <div class="adm-upload">
+          <input id="sBgFile" type="file" accept="audio/*" />
+          <button id="sBgUpload" class="adm-btn adm-btn--ghost" type="button">Tải nhạc nền lên repo</button>
+          <span id="sBgUploadStatus" class="adm-status"></span>
+        </div>
+        <label class="adm-field">Âm lượng nhạc nền <span class="adm-muted">(0–1)</span>
+          <input id="sBgVol" type="number" min="0" max="1" step="0.05" value="0.4" />
+        </label>
+      </fieldset>
+
+      <fieldset class="adm-fieldset">
+        <legend>Âm báo khi mở popup</legend>
+        <label class="adm-field">Đường dẫn âm báo <span class="adm-muted">(mp3/ogg; để trống = tiếng “pop” mặc định)</span>
+          <input id="sPopSrc" placeholder="assets/audio/popup.mp3  hoặc  https://…" autocomplete="off" />
+        </label>
+        <div class="adm-upload">
+          <input id="sPopFile" type="file" accept="audio/*" />
+          <button id="sPopUpload" class="adm-btn adm-btn--ghost" type="button">Tải âm báo lên repo</button>
+          <span id="sPopUploadStatus" class="adm-status"></span>
+        </div>
+        <label class="adm-field">Âm lượng âm báo <span class="adm-muted">(0–1)</span>
+          <input id="sPopVol" type="number" min="0" max="1" step="0.05" value="0.7" />
+        </label>
+      </fieldset>
+
+      <label class="adm-field">Mức nhạc nền khi popup mở <span class="adm-muted">(0–1; ví dụ 0.2 = giảm còn 20%)</span>
+        <input id="sDuck" type="number" min="0" max="1" step="0.05" value="0.2" />
+      </label>
+    </section>
+
+  </main>
+
+  <!-- ================= FORM MODAL ================= -->
+  <div id="formModal" class="adm-modal" hidden>
+    <div class="adm-modal__box">
+      <button id="formClose" class="adm-modal__close" type="button">✕</button>
+      <h3 id="formTitle">Thêm bảng</h3>
+
+      <label class="adm-field">Mã bảng <span class="adm-muted">(trùng tên material trong model, vd <code>Image_Board_01</code>)</span>
+        <input id="fId" placeholder="Image_Board_01" autocomplete="off" />
+      </label>
+
+      <label class="adm-field">Loại nội dung
+        <select id="fType">
+          <option value="image">Ảnh</option>
+          <option value="video">Video</option>
+        </select>
+      </label>
+
+      <label class="adm-field">Đường dẫn ảnh / video <span class="adm-muted">(URL hoặc đường dẫn trong repo)</span>
+        <input id="fSrc" placeholder="assets/exhibits/abc.jpg  hoặc  https://…" autocomplete="off" />
+      </label>
+
+      <div class="adm-upload">
+        <input id="fFile" type="file" accept="image/*,video/*" />
+        <button id="uploadBtn" class="adm-btn adm-btn--ghost" type="button">Tải ảnh/video lên repo</button>
+        <span id="uploadStatus" class="adm-status"></span>
+      </div>
+      <p class="adm-hint" style="margin-top:-8px"><b>Ảnh:</b> nên tải lên repo (hiện chắc chắn). <b>Video:</b> tải file mp4 &lt;50MB lên repo, <b>HOẶC dán link YouTube</b> (popup sẽ nhúng phát được). <b>Không dùng link Google Drive / SharePoint “stream”</b> cho ô này — đó là trang xem, không nhúng được (cứ để link đó ở ô “Xem chi tiết”).</p>
+
+      <label class="adm-field">Tiêu đề
+        <input id="fTitle" autocomplete="off" />
+      </label>
+
+      <label class="adm-field">Mô tả
+        <textarea id="fDesc" rows="3"></textarea>
+      </label>
+
+      <label class="adm-field">Link “Xem chi tiết” <span class="adm-muted">(tuỳ chọn)</span>
+        <input id="fLink" placeholder="https://…" autocomplete="off" />
+      </label>
+
+      <div class="adm-modal__actions">
+        <button id="formCancel" class="adm-btn adm-btn--ghost" type="button">Huỷ</button>
+        <button id="formSave" class="adm-btn adm-btn--primary" type="button">Lưu vào danh sách</button>
+      </div>
+      <p class="adm-hint">* “Lưu vào danh sách” chỉ cập nhật tạm trong trình duyệt. Bấm <b>⬆ Lưu lên web</b> để đẩy lên repo và hiển thị trên web.</p>
+    </div>
+  </div>
+
+  <script src="assets/js/admin.js?v=5"></script>
+</body>
+</html>

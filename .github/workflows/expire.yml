@@ -1,0 +1,39 @@
+name: Tắt web sau khi hết hạn (90 ngày)
+
+# Web sẽ tự "sập" thật phía server: tới ngày EXPIRY_DATE, workflow này gọi
+# GitHub API để TẮT GitHub Pages. Chạy tự động mỗi ngày.
+#
+# >>> CHỈ CẦN SỬA 1 DÒNG: EXPIRY_DATE = ngày deploy + 90 (giờ UTC).
+#     Nhớ điền TRÙNG với expiryDate trong config.js để 2 lớp khớp nhau.
+
+on:
+  schedule:
+    - cron: '15 1 * * *'      # 01:15 UTC mỗi ngày (~08:15 giờ VN)
+  workflow_dispatch:           # cho phép bấm chạy thủ công để test
+
+permissions:
+  pages: write
+  contents: write
+
+env:
+  EXPIRY_DATE: '2026-09-17'    # <<< ĐỔI Ở ĐÂY (YYYY-MM-DD) — deploy 19/06 + 90 ngày
+
+jobs:
+  check-expiry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: So sánh ngày & tắt Pages nếu đã hết hạn
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          now=$(date -u +%s)
+          exp=$(date -u -d "${EXPIRY_DATE} 00:00:00" +%s)
+          echo "Hôm nay (UTC): $(date -u +%F) | Hết hạn: ${EXPIRY_DATE}"
+          if [ "$now" -ge "$exp" ]; then
+            echo "==> ĐÃ HẾT HẠN. Đang tắt GitHub Pages..."
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/pages" \
+              && echo "Đã tắt Pages thành công." \
+              || echo "Không tắt được Pages (có thể cần secret GH_PAT có quyền 'Pages: write')."
+          else
+            echo "Chưa tới hạn. Không làm gì."
+          fi

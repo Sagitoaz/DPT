@@ -1,0 +1,361 @@
+/* =====================================================================
+   WebDPT – Bảo tàng số Khoa Đa phương tiện
+   Web thật (HTML/CSS), responsive, các section tách bạch (scroll-snap).
+   ===================================================================== */
+:root{
+  --orange:  #FFAA01;
+  --orange-d:#F09200;
+  --dark:    #382828;
+  --red:     #DD421D;
+  --blue:    #004ED8;
+  --green:   #02AF7F;
+  --text:    #2b2b2b;
+  --maxw:    1180px;
+  /* Font hiển thị cho các tiêu đề lớn (đúng thiết kế Figma). Dấu thanh kiểu thư pháp
+     (nét cong trên "Ố"...) là đặc trưng của Phudu — không phải chi tiết vẽ thêm. */
+  --font-display: "Phudu", "Be Vietnam Pro", system-ui, sans-serif;
+  /* Font UI cho tiêu đề phòng & nút (thiết kế dùng Helvetica; web fallback Arial). */
+  --font-ui: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* ---------------------------------------------------------------
+     ⚙️ CẤU HÌNH KHỐI "PHÒNG" – chỉnh số ở đây, không cần sửa rule bên dưới.
+     --------------------------------------------------------------- */
+  --window-maxw:          1240px;                 /* bề rộng tối đa thẻ cửa sổ */
+  --room-gap:             clamp(28px,4vw,58px);   /* khoảng cách 2 cột: card | nội dung */
+  --room-col-gap:         clamp(20px,2.4vw,30px); /* khoảng cách dọc trong cột nội dung */
+  --room-card-w:          460px;                  /* bề rộng card khi ở bên TRÁI (Phòng 1,3) */
+  --room-card-w-portrait: 360px;                  /* bề rộng card dọc bên PHẢI (Phòng 2) */
+  --card-portrait-ratio:  36 / 46;                /* tỉ lệ ngang/dọc của card dọc (Phòng 2) */
+  --card-radius:          16px;
+  --thumb-h:              clamp(90px,8.8vw,118px);/* chiều cao thumbnail kiểu --row */
+  --thumb-gap:            clamp(12px,1.4vw,22px);
+  --thumb-radius:         16px;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; height:100%; }
+body{
+  font-family:"Be Vietnam Pro", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color:var(--text); background:#fff; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+img{ max-width:100%; display:block; }
+a{ color:inherit; }
+
+/* --------- Deck: cuộn dọc + snap (mỗi section là 1 "slide" tách biệt) -------- */
+.deck{
+  height:100vh;
+  overflow-y:auto;
+  scroll-snap-type:y mandatory;
+  scroll-behavior:smooth;
+  scroll-padding-top:0;
+}
+.panel{
+  scroll-snap-align:start;
+  position:relative;
+}
+.panel--full{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.container{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+
+/* ----------------------------- Buttons ----------------------------- */
+.btn{ font-family:inherit; font-weight:700; border:none; cursor:pointer; border-radius:999px; letter-spacing:.5px; }
+.btn--primary{
+  background:var(--orange); color:#fff; font-size:18px; padding:15px 46px;
+  box-shadow:0 8px 22px rgba(255,170,1,.35);
+  transition:transform .15s, box-shadow .15s, background .15s;
+}
+.btn--primary:hover{ background:var(--orange-d); transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,170,1,.45); }
+.btn--lg{ font-size:20px; padding:18px 52px; }
+.btn--pill{
+  background:#fff; color:var(--orange); font-family:var(--font-ui); font-weight:700;
+  font-size:clamp(16px,1.55vw,22px); padding:14px 50px;
+  box-shadow:0 8px 20px rgba(0,0,0,.18); transition:transform .15s, box-shadow .15s;
+}
+.btn--pill:hover{ transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,.26); }
+
+/* ------------------------------ Hero ------------------------------- */
+/* Hero = đúng 1 trang (100vh). Cụm content canh giữa nhưng được đẩy lên trên
+   nhờ padding-bottom = chiều cao dải sóng (~12vw) → nút "KHÁM PHÁ NGAY" luôn
+   nằm PHÍA TRÊN dải sóng. padding-bottom dùng vw nên tự co giãn (responsive). */
+.hero{ text-align:center; overflow:hidden; height:100vh; justify-content:center; padding:60px 0 12vw; }
+.hero__inner{ position:relative; z-index:2; }
+.hero__logo{ width:172px; margin:0 auto 26px; }
+.hero__eyebrow{
+  color:var(--orange); font-weight:600; font-size:clamp(20px,2.4vw,34px);
+  letter-spacing:.3em; margin:6px 0 22px; text-transform:uppercase;
+}
+.hero__title{
+  font-family:var(--font-display); font-size:clamp(42px,5.4vw,73px); font-weight:700;
+  color:var(--dark); margin:0 0 14px; line-height:1.08;
+}
+.hero__band{ margin:0 0 28px; }
+.hero__band span{
+  display:inline-block; background:var(--dark); color:#fff; font-family:var(--font-display);
+  font-size:clamp(28px,5.4vw,73px); font-weight:700; line-height:1.12;
+  padding:2px 36px 12px; border-radius:12px;
+}
+.hero__subtitle{ font-size:clamp(15px,1.4vw,18px); color:var(--dark); margin:0 auto 36px; max-width:680px; }
+.hero__waves{ position:absolute; left:0; bottom:0; width:100%; z-index:1; pointer-events:none; }
+
+/* --------------------- Split titles (dark band) -------------------- */
+.split-title{
+  font-size:clamp(28px,3.6vw,46px); font-weight:800; text-align:center; margin:0 0 36px;
+  line-height:1.2; color:var(--dark);
+  display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center;
+}
+.split-title--mt{ margin-top:56px; }
+.split-title__dark{ background:var(--dark); color:#fff; padding:4px 18px 8px; border-radius:10px; }
+
+/* ------------------------------ Intro ------------------------------ */
+/* Intro & trang "CẤU TRÚC" là 2 trang riêng, mỗi trang cao 100vh (panel--full)
+   và canh giữa nội dung theo chiều dọc. Padding đối xứng để giữ canh giữa chuẩn. */
+.intro{ padding:clamp(40px,7vh,80px) 0; }
+.intro__text{ max-width:920px; margin:0 auto; text-align:justify; }
+.intro__text p{ margin:0 0 18px; font-size:clamp(15px,1.15vw,17px); color:#3a3a3a; }
+
+/* ============================== ROOMS ==============================
+   ┌─ CÔNG THỨC DỰNG 1 PHÒNG (xem Phòng 1 & 2 trong index.html làm mẫu) ─┐
+   <section class="panel room room--{red|blue|green}">
+     <div class="window">
+       <div class="window__bar"><span class="dots"><i></i><i></i><i></i></span>
+         <h3 class="window__title">PHÒNG TRƯNG BÀY 0x: …</h3></div>
+       <div class="window__body">
+         <div class="room__grid [room__grid--reverse]">
+           <div class="room__media [room__media--portrait]"><img …></div>  ← CARD ảnh
+           <div class="room__col">                                         ← CỘT nội dung
+             <div class="room__text"><p>…</p><p>…</p></div>
+             <div class="room__thumbs room__thumbs--{grid|row}"><img>×4</div>
+             <div class="room__cta"><button class="btn btn--pill js-scroll-bottom">KHÁM PHÁ NGAY</button></div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </section>
+   • Thứ tự HTML luôn: .room__media TRƯỚC, .room__col SAU (kể cả khi --reverse).
+   • Card TRÁI (Phòng 1,3): KHÔNG dùng --reverse.
+   • Card PHẢI (Phòng 2): thêm --reverse (CSS tự đảo card sang phải). Ảnh dọc thì thêm --media--portrait.
+   • Thumbnail: --grid = 4 ô vuông đều | --row = giữ tỉ lệ gốc, cùng chiều cao.
+   • Mọi kích thước chỉnh ở biến --room-* / --thumb-* / --card-* trong :root.
+   =================================================================== */
+.room{ padding:30px 0; margin-top:64px; }
+.room--red{   background:var(--red); }
+.room--blue{  background:var(--blue); }
+.room--green{ background:var(--green); }
+
+/* ----- TRANG TRƯNG BÀY: mỗi phòng là 1 trang 100vh, khối màu full-bleed canh giữa
+   theo chiều dọc (dải trắng trên/dưới ngăn cách). "safe center" tránh cắt mép khi màn
+   thấp. Riêng TRANG 3 còn có heading "CẤU TRÚC" + khoảng trắng phía trên khối đỏ. ----- */
+.room-stage{ justify-content:safe center; padding:clamp(16px,3vh,40px) 0; }
+.room-stage .split-title{ margin:0; }
+.room-stage .room{ margin-top:0; }                              /* khối màu canh giữa tuyệt đối */
+.room-stage__head + .room{ margin-top:clamp(32px,5vh,60px); }   /* chỉ trang 3: chừa khoảng trắng dưới heading */
+
+/* ----- Khung cửa sổ: title-bar (mac dots) trắng + thân cam ----- */
+.window{ width:100%; max-width:var(--window-maxw); margin:0 auto; border-radius:22px; overflow:hidden; box-shadow:0 26px 60px rgba(0,0,0,.28); }
+.window__bar{ background:#fff; display:flex; align-items:center; gap:18px; padding:14px 26px; }
+.dots{ display:inline-flex; gap:8px; flex:0 0 auto; }
+.dots i{ width:14px; height:14px; border-radius:50%; display:block; }
+.dots i:nth-child(1){ background:#ED4C4C; }
+.dots i:nth-child(2){ background:#F5B73D; }
+.dots i:nth-child(3){ background:#3BC04A; }
+.window__title{ margin:0; color:var(--orange); font-family:var(--font-ui); font-weight:700; font-size:clamp(15px,1.9vw,25px); letter-spacing:.2px; }
+.window__body{ background:var(--orange); padding:34px clamp(20px,3.4vw,48px) 40px; }
+
+/* ----- Lưới 2 cột: CARD ảnh | CỘT nội dung ----- */
+.room__grid{ display:grid; gap:var(--room-gap); align-items:stretch; grid-template-columns:minmax(0,var(--room-card-w)) 1fr; }
+.room__grid--reverse{ grid-template-columns:1fr minmax(0,var(--room-card-w-portrait)); }
+.room__grid--reverse .room__media{ order:2; }   /* đảo card sang phải (HTML vẫn để media trước) */
+.room__grid--portrait-left{ grid-template-columns:minmax(0,var(--room-card-w-portrait)) 1fr; }  /* card dọc bên TRÁI (Phòng 3) */
+
+/* ----- Card ảnh ----- */
+.room__media img{ width:100%; display:block; border-radius:var(--card-radius); }
+/* Card dọc: ảnh landscape gốc cắt cover, canh giữa */
+.room__media--portrait img{ aspect-ratio:var(--card-portrait-ratio); height:auto; object-fit:cover; object-position:50% 50%; }
+
+/* ----- Cột nội dung: text → thumbnail → nút (nút canh đáy cột) ----- */
+.room__col{ display:flex; flex-direction:column; gap:var(--room-col-gap); }
+.room__text p{ margin:0 0 16px; color:#fff; font-size:clamp(14px,1.05vw,16px); text-align:justify; }
+.room__text p:last-child{ margin-bottom:0; }
+.room__cta{ text-align:center; }
+.room__col .room__cta{ margin-top:auto; }
+
+/* ----- Thumbnail: 3 kiểu ----- */
+.room__thumbs{ margin:0; }
+/* a) --grid: 4 ô vuông đều, dàn lấp ngang cột (Phòng 1) */
+.room__thumbs--grid{ display:flex; gap:var(--thumb-gap); }
+.room__thumbs--grid img{ flex:1 1 0; width:0; min-width:0; height:auto; border-radius:var(--thumb-radius); }
+/* b) --row: giữ tỉ lệ gốc, cùng chiều cao (Phòng 2 & 3) */
+.room__thumbs--row{ display:flex; gap:var(--thumb-gap); align-items:flex-start; flex-wrap:wrap; }
+.room__thumbs--row img{ height:var(--thumb-h); width:auto; border-radius:var(--thumb-radius); flex:0 0 auto; }
+
+/* ------------------------------ Guide ------------------------------ */
+/* Trang cuối = Hướng dẫn + Footer trong 1 panel cao 100vh. Footer ghim đáy
+   (margin-top:auto) → cuộn tới snap sạch, footer hiện đủ ở đáy (không dừng nửa chừng).
+   Cụm Hướng dẫn giãn đầy khoảng trống phía trên footer và CĂN GIỮA theo chiều dọc
+   ("safe center" tránh cắt mép trên khi màn thấp). */
+.guide-page{ min-height:100vh; display:flex; flex-direction:column; }
+.guide{ flex:1; display:flex; flex-direction:column; justify-content:safe center; padding:clamp(24px,5vh,60px) 0; }
+.guide__lead{ text-align:center; max-width:1000px; margin:0 auto 44px; font-size:clamp(15px,1.15vw,17px); }
+.guide__steps{ list-style:none; margin:0 auto 50px; padding:0; max-width:980px; }
+.guide__step{ display:flex; align-items:center; gap:34px; margin:0 0 30px; }
+.guide__icon{ width:92px; flex:0 0 92px; object-fit:contain; }
+.guide__step p{ margin:0; font-size:clamp(14px,1.1vw,16px); text-align:justify; }
+.guide__cta{ text-align:center; }
+
+/* ------------------------------ Footer -----------------------------
+   Bố cục bám Figma: LOGO + cột 1 dồn về trái, cột 2 đẩy sang phải.
+   Cột bắt đầu tại ~18% (cột 1) và ~65% (cột 2) bề rộng nội dung — khớp
+   toạ độ Figma (logo x≈115, cột1 x≈327, cột2 x≈858 trên khung 1366). */
+.footer{ background:var(--dark); color:#fff; padding:22px 0; min-height:auto; margin-top:auto; }
+.footer__inner{ display:grid; grid-template-columns:19% 48% 33%; gap:0; align-items:center; }
+.footer__logo{ width:120px; }
+.footer__col p{ margin:0; font-size:12px; line-height:1.4; }
+.footer__col a{ text-decoration:none; word-break:break-all; }
+.footer__col a:hover{ text-decoration:underline; }
+
+/* =====================================================================
+   CHỈ TỐI ƯU CHO DESKTOP MÀN NGANG (theo yêu cầu – không làm responsive dọc).
+   Màn rất lớn: nới nhẹ khổ nội dung cho cân đối.
+   ===================================================================== */
+@media (min-width:1700px){
+  :root{ --maxw:1320px; --window-maxw:1340px; }
+}
+
+/* =====================================================================
+   MUSEUM 3D OVERLAY
+   ===================================================================== */
+.museum{ position:fixed; inset:0; z-index:1000; background:#0d0f14; display:none; }
+.museum.is-open{ display:block; }
+.museum__canvas{ position:absolute; inset:0; }
+.museum__canvas canvas{ display:block; width:100%; height:100%; }
+.museum__topbar{
+  position:absolute; top:0; left:0; right:0; z-index:5;
+  display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 18px;
+  background:linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,0)); color:#fff; pointer-events:none;
+}
+.museum__title{ font-weight:700; letter-spacing:.5px; font-size:15px; }
+.museum__actions{ display:flex; gap:10px; align-items:center; pointer-events:auto; }
+.museum__exit{
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3); color:#fff;
+  border-radius:999px; padding:8px 18px; font-family:inherit; font-weight:600; cursor:pointer;
+}
+.museum__exit:hover{ background:rgba(255,255,255,.22); }
+.museum__sound{
+  width:40px; height:40px; flex:none; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3); color:#fff;
+  border-radius:50%; font-size:17px; line-height:1; padding:0; cursor:pointer;
+  transition:background .15s, opacity .15s, border-color .15s;
+}
+.museum__sound:hover{ background:rgba(255,255,255,.22); }
+.museum__sound.is-muted{ opacity:.65; border-color:rgba(255,255,255,.16); }
+.museum__hint{
+  position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:5;
+  display:flex; flex-wrap:wrap; gap:6px 18px; justify-content:center; max-width:92vw; padding:12px 20px;
+  background:rgba(13,15,20,.72); border:1px solid rgba(255,255,255,.14); border-radius:14px;
+  color:#e9e9e9; font-size:13px; backdrop-filter:blur(6px); transition:opacity .4s ease;
+}
+.museum__hint b{ color:var(--orange); }
+.museum__hint.is-faded{ opacity:.18; }
+.museum__loading{
+  position:absolute; inset:0; z-index:6; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:18px; background:#0d0f14; color:#fff;
+}
+.spinner{ width:46px; height:46px; border:4px solid rgba(255,255,255,.2); border-top-color:var(--orange); border-radius:50%; }
+.museum.is-open .spinner{ animation:spin 1s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.product-panel{
+  position:absolute; top:50%; right:24px; transform:translateY(-50%); z-index:7;
+  width:320px; max-width:86vw; background:#fff; border-radius:16px; padding:22px 22px 26px;
+  box-shadow:0 20px 50px rgba(0,0,0,.45); display:none;
+}
+.product-panel.is-open{ display:block; }
+.product-panel h3{ margin:0 0 10px; color:var(--dark); font-size:20px; }
+.product-panel p{ margin:0; font-size:14px; color:#444; }
+.product-panel__close{ position:absolute; top:10px; right:12px; border:none; background:none; font-size:18px; cursor:pointer; color:#888; }
+.product-panel__media{ margin:0 0 14px; border-radius:10px; overflow:hidden; background:#f1f2f5; }
+.product-panel__media img, .product-panel__media video{ display:block; width:100%; height:auto; max-height:240px; object-fit:cover; }
+.product-panel__media iframe{ display:block; width:100%; aspect-ratio:16/9; border:0; }
+.product-panel__link{
+  display:inline-block; margin-top:14px; padding:9px 16px; border-radius:999px;
+  background:var(--orange); color:var(--dark); font-family:var(--font-ui); font-weight:700;
+  font-size:13px; text-decoration:none; transition:background .15s;
+}
+.product-panel__link:hover{ background:var(--orange-d); }
+
+/* =====================================================================
+   ANIMATIONS – hiệu ứng chuyển trang & vi tương tác
+   ──────────────────────────────────────────────────────────────────
+   Nguyên tắc: KHÔNG đổi thiết kế. Mọi hiệu ứng chỉ dùng transform/opacity
+   (không ảnh hưởng layout) và trạng thái cuối luôn = bố cục gốc
+   (transform:none; opacity:1). Chuyển động nền (ambient) tôn trọng
+   prefers-reduced-motion.
+   ===================================================================== */
+
+/* --- 1) Scroll reveal: nội dung mỗi "trang" xuất hiện khi cuộn tới --- */
+/* Chỉ bật khi JS đã sẵn sàng (.anim-ready) → nếu tắt JS / reduced-motion
+   thì nội dung hiển thị bình thường, không bao giờ bị ẩn. */
+.anim-ready .reveal{
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity .7s cubic-bezier(.22,.61,.36,1),
+             transform .7s cubic-bezier(.22,.61,.36,1);
+  transition-delay:var(--reveal-delay, 0s);
+  will-change:opacity, transform;
+}
+.anim-ready .reveal.is-visible{ opacity:1; transform:none; }
+
+/* --- 2) Thanh tiến trình cuộn (mảnh, màu thương hiệu) ---
+   Nằm DƯỚI overlay bảo tàng (z<1000) nên tự ẩn khi mở không gian 3D. */
+.scroll-progress{
+  position:fixed; top:0; left:0; height:3px; width:0;
+  background:linear-gradient(90deg, var(--orange), var(--orange-d));
+  box-shadow:0 0 10px rgba(255,170,1,.55);
+  z-index:900; pointer-events:none;
+  transition:width .12s ease-out;
+}
+
+/* --- 3) Hover zoom nhẹ cho ảnh (thêm chiều sâu, KHÔNG đổi bố cục) --- */
+.room__media{ overflow:hidden; border-radius:var(--card-radius); }
+.room__media img,
+.room__thumbs img{ transition:transform .45s cubic-bezier(.22,.61,.36,1); }
+.room__media img:hover{ transform:scale(1.04); }
+.room__thumbs img:hover{ transform:scale(1.06); }
+
+/* --- 4) Mở overlay Bảo tàng 3D: fade mượt thay vì hiện đột ngột --- */
+.museum.is-open{ animation:museumIn .35s ease both; }
+@keyframes museumIn{ from{ opacity:0; } to{ opacity:1; } }
+
+/* --- 5) Chuyển động nền (ambient) – chỉ khi người dùng không tắt motion --- */
+@media (prefers-reduced-motion: no-preference){
+  /* Dải sóng hero "thở" nhẹ. Scale từ mép đáy → không hở nền trên/dưới. */
+  .hero__waves{ transform-origin:50% 100%; animation:waveFloat 8s ease-in-out infinite; }
+  @keyframes waveFloat{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.025); }
+  }
+  /* Nút CTA chính khẽ "nhịp" để mời gọi tương tác (dừng khi hover). */
+  .hero .btn--primary{ animation:ctaPulse 2.6s ease-in-out infinite; }
+  .hero .btn--primary:hover{ animation:none; }
+  @keyframes ctaPulse{
+    0%,100%{ box-shadow:0 8px 22px rgba(255,170,1,.35); }
+    50%{ box-shadow:0 10px 30px rgba(255,170,1,.6); }
+  }
+}
+
+/* Tôn trọng tuyệt đối lựa chọn giảm chuyển động của người dùng. */
+@media (prefers-reduced-motion: reduce){
+  .anim-ready .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+  .museum.is-open{ animation:none; }
+}
+
+/* =========================== EXPIRED GATE ========================== */
+.expired-screen{
+  position:fixed; inset:0; z-index:99999; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; padding:24px;
+  background:var(--dark); color:#fff; font-family:"Be Vietnam Pro", sans-serif;
+}
+.expired-screen h1{ font-size:40px; margin:0 0 12px; }
+.expired-screen p{ font-size:17px; opacity:.85; max-width:520px; }

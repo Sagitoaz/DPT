@@ -1,0 +1,14 @@
+# File tham chiếu thiết kế (không cần deploy)
+_figma_ref/
+_figma_metadata.xml
+
+# HDRI nguồn 8K (đã convert sang assets/models/HDRi_web.hdr cho web – chỉ giữ bản web)
+assets/models/HDRi.exr
+# File tạm khi xử lý ảnh/HDRI
+_*.py
+_tex_*.png
+_hdri_*.png
+
+# OS / editor
+.DS_Store
+Thumbs.db

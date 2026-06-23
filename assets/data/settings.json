@@ -1,0 +1,10 @@
+{
+  "sound": {
+    "enabled": true,
+    "bgSrc": "",
+    "bgVolume": 0.4,
+    "popupSrc": "",
+    "popupVolume": 0.7,
+    "duck": 0.2
+  }
+}

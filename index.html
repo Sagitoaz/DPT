@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảo tàng số – Khoa Đa phương tiện | VR360 PTIT</title>
+  <meta name="description" content="Bảo tàng số Khoa Đa phương tiện – không gian trưng bày VR360 các sản phẩm tiêu biểu của sinh viên." />
+  <link rel="icon" type="image/png" href="assets/img/favicon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Phudu:wght@300..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css?v=8" />
+  <script src="config.js?v=9"></script>
+
+  <!-- three.js (ESM) – addon import bare specifier "three" nên cần importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <main class="deck">
+
+    <!-- ============================= HERO ============================= -->
+    <section class="panel panel--full hero">
+      <div class="container hero__inner">
+        <img class="hero__logo" src="assets/img/header_logo.png" alt="Faculty of Multimedia" />
+        <p class="hero__eyebrow">VR360 &nbsp; MULTIMEDIA &nbsp; PTIT</p>
+        <h1 class="hero__title">BẢO TÀNG SỐ</h1>
+        <div class="hero__band"><span>KHOA ĐA PHƯƠNG TIỆN</span></div>
+        <p class="hero__subtitle">Không gian trưng bày các sản phẩm của sinh viên Khoa Đa Phương tiện</p>
+        <button class="btn btn--primary js-scroll-bottom" type="button">KHÁM PHÁ NGAY</button>
+      </div>
+      <img class="hero__waves" src="assets/img/hero_waves.png" alt="" aria-hidden="true" />
+    </section>
+
+    <!-- ============================ INTRO ============================ -->
+    <section class="panel panel--full intro">
+      <div class="container">
+        <h2 class="split-title">
+          <span class="split-title__plain">VR360</span><span class="split-title__dark">MULTIMEDIA PTIT</span>
+        </h2>
+        <div class="intro__text">
+          <p>Bảo tàng số Khoa Đa phương tiện là không gian lưu trữ, trưng bày và giới thiệu trực quan các sản phẩm, dự án tiêu biểu do sinh viên Khoa Đa phương tiện thực hiện trong quá trình học tập, nghiên cứu và thực hành nghề nghiệp dưới sự hướng dẫn của giảng viên phụ trách học phần.</p>
+          <p>Không gian này tập hợp các sản phẩm nổi bật thuộc các học phần cơ sở ngành, chuyên ngành, thực tập tốt nghiệp, đồ án và khóa luận của sinh viên thuộc ba ngành đào tạo của Khoa, gồm: Truyền thông Đa phương tiện, Công nghệ Đa phương tiện (gồm chuyên ngành Phát triển ứng dụng Đa phương tiện và Thiết kế đa phương tiện) và Báo chí (Định hướng số).</p>
+          <p>Thông qua việc thực hiện các sản phẩm và dự án trong quá trình đào tạo, sinh viên có cơ hội rèn luyện kỹ năng nghề nghiệp, phát triển tư duy sáng tạo, năng lực làm việc thực tế và khả năng thích ứng với yêu cầu của thị trường lao động. Đây cũng là một trong những định hướng đào tạo quan trọng của Khoa Đa phương tiện: gắn lý thuyết với thực tiễn, gắn đào tạo với sản phẩm, qua đó góp phần hình thành nguồn nhân lực chất lượng cao trong lĩnh vực truyền thông số, báo chí số, phát triển ứng dụng, thiết kế đa phương tiện trong bối cảnh hiện nay.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TRANG 3: CẤU TRÚC + PHÒNG TRƯNG BÀY 01 ============ -->
+    <section class="panel panel--full room-stage">
+      <div class="container room-stage__head">
+        <h2 class="split-title">
+          <span class="split-title__plain">CẤU TRÚC</span><span class="split-title__dark">PHÒNG TRIỂN LÃM</span>
+        </h2>
+      </div>
+
+      <div class="room room--red">
+      <div class="window">
+        <div class="window__bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <h3 class="window__title">PHÒNG TRƯNG BÀY 01: TRUYỀN THÔNG ĐA PHƯƠNG TIỆN</h3>
+        </div>
+        <div class="window__body">
+          <div class="room__grid">
+            <div class="room__media"><img src="assets/img/room1_preview.png" alt="Sản phẩm truyền thông đa phương tiện tiêu biểu" /></div>
+            <div class="room__col">
+              <div class="room__text">
+                <p>Phòng triển lãm Ngành Truyền thông đa phương tiện là không gian sáng tạo thể hiện tư duy chiến lược, năng lực hoạch định và kỹ năng phát triển nội dung số mang tính đổi mới liên tục của người trẻ trong kỷ nguyên mới.</p>
+                <p>Phòng triển lãm ngành Truyền thông đa phương tiện sẽ trưng bày các sản phẩm đặc trưng của ngành như sản phẩm TVC, phóng sự, video diễn hoạt 2D (animation), bộ nhận diện thương hiệu, thiết kế giao diện, infographic, Tạp chí, Emegazine…</p>
+              </div>
+              <div class="room__thumbs room__thumbs--grid">
+                <img src="assets/img/room1_thumb1.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room1_thumb2.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room1_thumb3.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room1_thumb4.png" alt="" aria-hidden="true" />
+              </div>
+              <div class="room__cta"><button class="btn btn--pill js-scroll-bottom" type="button">KHÁM PHÁ NGAY</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===================== TRANG 4: PHÒNG TRƯNG BÀY 02 ===================== -->
+    <section class="panel panel--full room-stage">
+      <div class="room room--blue">
+      <div class="window">
+        <div class="window__bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <h3 class="window__title">PHÒNG TRƯNG BÀY 02: CÔNG NGHỆ ĐA PHƯƠNG TIỆN</h3>
+        </div>
+        <div class="window__body">
+          <div class="room__grid room__grid--reverse">
+            <div class="room__media room__media--portrait"><img src="assets/img/room2_preview.png" alt="Vòng chung kết cuộc thi thiết kế Công nghệ và Phát triển bền vững" /></div>
+            <div class="room__col">
+              <div class="room__text">
+                <p>Phòng trưng bày Ngành Công nghệ Đa phương tiện khẳng định năng lực vượt trội của sinh viên trong việc làm chủ các công cụ, nền tảng kỹ thuật hiện đại (AI, AR/VR, Game Engine) để giải quyết các bài toán thực tế, sẵn sàng trở thành lực lượng nòng cốt trong công cuộc chuyển đổi số quốc gia.</p>
+                <p>Phân khu Chuyên ngành Thiết kế đa phương tiện: Tác phẩm đồ họa 2D/3D, nghệ thuật diễn hoạt hình ảnh (animation) và giải pháp thiết kế giao diện, trải nghiệm người dùng (UI/UX).</p>
+              </div>
+              <div class="room__thumbs room__thumbs--row">
+                <img src="assets/img/room2_thumb1.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room2_thumb2.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room2_thumb3.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room2_thumb4.png" alt="" aria-hidden="true" />
+              </div>
+              <div class="room__cta"><button class="btn btn--pill js-scroll-bottom" type="button">KHÁM PHÁ NGAY</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===================== TRANG 5: PHÒNG TRƯNG BÀY 03 ===================== -->
+    <section class="panel panel--full room-stage">
+      <div class="room room--green">
+      <div class="window">
+        <div class="window__bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <h3 class="window__title">PHÒNG TRƯNG BÀY 03: BÁO CHÍ ĐỊNH HƯỚNG SỐ</h3>
+        </div>
+        <div class="window__body">
+          <div class="room__grid room__grid--portrait-left">
+            <div class="room__media room__media--portrait"><img src="assets/img/room3_preview.png" alt="Tác phẩm báo chí định hướng số của sinh viên" /></div>
+            <div class="room__col">
+              <div class="room__text">
+                <p>Phòng triển lãm Ngành Báo chí (Định hướng số) khẳng định bản lĩnh chính trị vững vàng, đạo đức nghề nghiệp và kỹ năng sản xuất nội dung đa năng của người làm báo thời đại số.</p>
+                <p>Sản phẩm tiêu biểu: Các tác phẩm báo chí đa nền tảng chất lượng cao, dự án báo chí dữ liệu (Data Journalism), sản phẩm Megastory, Podcast và phóng sự số đương đại.</p>
+              </div>
+              <div class="room__thumbs room__thumbs--row">
+                <img src="assets/img/room3_thumb1.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room3_thumb2.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room3_thumb3.png" alt="" aria-hidden="true" />
+                <img src="assets/img/room3_thumb4.png" alt="" aria-hidden="true" />
+              </div>
+              <div class="room__cta"><button class="btn btn--pill js-scroll-bottom" type="button">KHÁM PHÁ NGAY</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ================== TRANG CUỐI: HƯỚNG DẪN + FOOTER ================== -->
+    <section class="panel guide-page">
+      <div class="guide">
+      <div class="container">
+        <h2 class="split-title">
+          <span class="split-title__plain">HƯỚNG DẪN THAM QUAN</span><span class="split-title__dark">BẢO TÀNG SỐ</span>
+        </h2>
+        <p class="guide__lead">Để có trải nghiệm tối ưu nhất tại Sảnh chính và 03 Phòng trưng bày, vui lòng lưu ý các thao tác điều hướng cơ bản sau:</p>
+
+        <ul class="guide__steps">
+          <li class="guide__step">
+            <img class="guide__icon" src="assets/img/icon_move.png" alt="" aria-hidden="true" />
+            <p><strong>Di chuyển:</strong> Sử dụng các phím mũi tên ↑↓←→ (hoặc cụm phím W A S D) trên bàn phím để di chuyển góc nhìn trong không gian; giữ thêm phím <strong>Shift</strong> để di chuyển nhanh. Hoặc click trực tiếp vào các điểm điều hướng trên sàn.</p>
+          </li>
+          <li class="guide__step">
+            <img class="guide__icon" src="assets/img/icon_click.png" alt="" aria-hidden="true" />
+            <p><strong>Tương tác sản phẩm:</strong> Khi tiến lại gần các khu vực trưng bày, click trực tiếp vào sản phẩm để mở bảng thông tin chi tiết, xem video gốc hoặc liên kết đến mã nguồn/ứng dụng.</p>
+          </li>
+          <li class="guide__step">
+            <img class="guide__icon" src="assets/img/icon_device.png" alt="" aria-hidden="true" />
+            <p><strong>Thiết bị khuyến nghị:</strong> Sử dụng máy tính (PC/Laptop) kết nối mạng tốc độ cao và tai nghe để trải nghiệm trọn vẹn không gian âm thanh - hình ảnh giả lập.</p>
+          </li>
+        </ul>
+
+        <div class="guide__cta">
+          <button class="btn btn--primary btn--lg js-open-museum" id="hs-enter" type="button">KÍCH HOẠT BẢO TÀNG SỐ 3D</button>
+        </div>
+      </div>
+      </div>
+
+      <footer class="footer">
+      <div class="container footer__inner">
+        <img class="footer__logo" src="assets/img/footer_logo.png" alt="Faculty of Multimedia" />
+        <div class="footer__col">
+          <p><strong>Địa chỉ:</strong> Tầng 1, nhà A1, Số 96A Trần Phú, Hà Đông, Hà Nội</p>
+          <p><strong>Website:</strong> <a href="https://dpt.ptit.edu.vn/" target="_blank" rel="noopener">https://dpt.ptit.edu.vn/</a></p>
+          <p><strong>Email:</strong> hiện chưa có cần add thêm</p>
+        </div>
+        <div class="footer__col">
+          <p><strong>Fanpage:</strong> <a href="https://www.facebook.com/khoadaphuongtienptit" target="_blank" rel="noopener">https://www.facebook.com/khoadaphuongtienptit</a></p>
+          <p><strong>Tiktok:</strong> <a href="https://www.tiktok.com/@ttdpt.ptit" target="_blank" rel="noopener">https://www.tiktok.com/@ttdpt.ptit</a></p>
+          <p><strong>Phó trưởng khoa (Phụ trách):</strong> TS. Lê Thị Hằng</p>
+        </div>
+      </div>
+    </footer>
+    </section>
+
+  </main>
+
+  <!-- ===================== MUSEUM 3D OVERLAY ====================== -->
+  <div class="museum" id="museum" aria-hidden="true">
+    <div class="museum__topbar">
+      <span class="museum__title">BẢO TÀNG SỐ 3D – KHOA ĐA PHƯƠNG TIỆN</span>
+      <div class="museum__actions">
+        <button id="museum-sound-btn" class="museum__sound" type="button" aria-pressed="true" aria-label="Bật/tắt âm thanh" title="Tắt âm thanh">🔊</button>
+        <button class="museum__exit js-close-museum" type="button">✕ Thoát</button>
+      </div>
+    </div>
+    <div class="museum__hint" id="museum-hint">
+      <strong>Điều khiển:</strong>
+      <span><b>W A S D</b> / phím mũi tên: di chuyển</span>
+      <span><b>Giữ SHIFT</b>: chạy nhanh</span>
+      <span><b>Giữ &amp; kéo chuột</b>: xoay góc nhìn</span>
+      <span><b>Click sàn</b>: di chuyển đến điểm</span>
+      <span><b>Click sản phẩm</b>: xem thông tin</span>
+      <span><b>Nút 🔊</b>: bật/tắt âm thanh</span>
+    </div>
+    <div class="museum__loading" id="museum-loading">
+      <div class="spinner"></div>
+      <p>Đang tải không gian 3D…</p>
+    </div>
+    <div class="product-panel" id="product-panel" aria-hidden="true">
+      <button class="product-panel__close" type="button">✕</button>
+      <div class="product-panel__media" id="product-media" hidden></div>
+      <h3 id="product-title">Tên sản phẩm</h3>
+      <p id="product-desc">Mô tả sản phẩm…</p>
+      <a class="product-panel__link" id="product-link" target="_blank" rel="noopener" hidden>Xem chi tiết →</a>
+    </div>
+    <div id="museum-canvas-wrap" class="museum__canvas"></div>
+  </div>
+
+  <script type="module" src="assets/js/main.js?v=12"></script>
+</body>
+</html>

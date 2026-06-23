@@ -1,0 +1,113 @@
+/* =====================================================================
+   admin.css – Trang quản trị nội dung Bảo tàng số 3D
+   Dùng cùng bảng màu với site chính (cam #FFAA01 / nâu đậm #382828).
+   ===================================================================== */
+:root{
+  --orange:#FFAA01; --orange-d:#F09200; --dark:#382828;
+  --line:#e6e3df; --muted:#8a807a; --bg:#f4f2ef; --danger:#d6452b;
+}
+*{ box-sizing:border-box; }
+body{
+  margin:0; background:var(--bg); color:var(--dark);
+  font-family:"Be Vietnam Pro", system-ui, sans-serif; line-height:1.55;
+}
+.adm-wrap{ width:100%; max-width:900px; margin:0 auto; padding:0 20px; }
+
+.adm-header{ background:var(--dark); color:#fff; padding:26px 0 24px; }
+.adm-header h1{ margin:0 0 6px; font-size:clamp(22px,3vw,30px); font-weight:800; }
+.adm-header p{ margin:0; font-size:14px; color:#e7ddd6; max-width:680px; }
+.adm-header code, .adm-card code{ background:rgba(255,170,1,.16); color:var(--orange-d);
+  padding:1px 6px; border-radius:5px; font-size:.92em; }
+.adm-header code{ color:#ffd479; background:rgba(255,170,1,.2); }
+
+.adm-main{ padding:26px 20px 60px; display:flex; flex-direction:column; gap:22px; }
+
+.adm-card{ background:#fff; border:1px solid var(--line); border-radius:14px;
+  padding:22px 22px 24px; box-shadow:0 8px 24px rgba(56,40,40,.05); }
+.adm-card h2{ margin:0 0 12px; font-size:19px; font-weight:700; }
+.adm-hint{ margin:0 0 14px; font-size:13.5px; color:var(--muted); }
+.adm-muted{ color:var(--muted); font-weight:400; font-size:.9em; }
+
+/* ---- token ---- */
+.adm-token-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.adm-token-row input{ flex:1; min-width:240px; }
+.adm-help{ margin-top:14px; font-size:13px; color:#5a5048; }
+.adm-help summary{ cursor:pointer; font-weight:600; color:var(--orange-d); }
+.adm-help ol{ margin:10px 0 0; padding-left:20px; }
+.adm-help li{ margin:4px 0; }
+
+/* ---- inputs ---- */
+input, select, textarea{
+  font-family:inherit; font-size:14px; color:var(--dark);
+  padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:#fff; width:100%;
+}
+input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(255,170,1,.18); }
+textarea{ resize:vertical; }
+
+/* ---- buttons ---- */
+.adm-btn{
+  font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+  padding:10px 16px; border-radius:9px; border:1px solid var(--line);
+  background:#fff; color:var(--dark); transition:background .15s, border-color .15s, transform .05s;
+}
+.adm-btn:hover{ background:#f6f4f1; }
+.adm-btn:active{ transform:translateY(1px); }
+.adm-btn--primary{ background:var(--orange); border-color:var(--orange); color:var(--dark); }
+.adm-btn--primary:hover{ background:var(--orange-d); border-color:var(--orange-d); }
+.adm-btn--ghost{ background:transparent; }
+.adm-btn--danger{ color:var(--danger); border-color:#eccac2; }
+.adm-btn--danger:hover{ background:#fbeeea; }
+
+/* ---- toolbar ---- */
+.adm-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
+.adm-toolbar h2{ margin:0; }
+.adm-toolbar__actions{ display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ---- status ---- */
+.adm-status{ margin:6px 0 0; font-size:13px; color:#3a7d44; min-height:18px; }
+.adm-status.is-error{ color:var(--danger); }
+
+/* ---- list ---- */
+.adm-list{ display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+.adm-empty{ color:var(--muted); font-size:14px; margin:8px 0; }
+.adm-item{ display:flex; align-items:center; gap:14px; padding:12px;
+  border:1px solid var(--line); border-radius:11px; background:#fcfbfa; }
+.adm-thumb{ width:64px; height:64px; flex:none; border-radius:8px; object-fit:cover;
+  background:#eee; display:flex; align-items:center; justify-content:center; font-size:24px; color:#bbb; }
+.adm-thumb--empty{ border:1px dashed #d6d1cb; }
+.adm-thumb--video{ background:#2b2b2b; color:#fff; }
+.adm-item__body{ flex:1; min-width:0; }
+.adm-item__id{ font-size:12.5px; color:var(--muted); font-weight:600; letter-spacing:.2px; }
+.adm-tag{ display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px;
+  background:rgba(255,170,1,.18); color:var(--orange-d); font-size:11px; }
+.adm-item__title{ font-size:15.5px; font-weight:700; margin:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.adm-item__desc{ font-size:13px; color:#665d56; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.adm-item__actions{ display:flex; gap:8px; flex:none; }
+
+/* ---- modal ---- */
+.adm-modal{ position:fixed; inset:0; z-index:50; background:rgba(40,28,28,.5);
+  display:flex; align-items:flex-start; justify-content:center; padding:30px 16px; overflow:auto; }
+.adm-modal[hidden]{ display:none; }
+.adm-modal__box{ position:relative; width:100%; max-width:520px; background:#fff;
+  border-radius:14px; padding:24px 24px 22px; box-shadow:0 24px 60px rgba(0,0,0,.35); }
+.adm-modal__box h3{ margin:0 0 16px; font-size:19px; }
+.adm-modal__close{ position:absolute; top:12px; right:14px; border:none; background:none;
+  font-size:18px; cursor:pointer; color:#999; }
+.adm-field{ display:block; font-size:13px; font-weight:600; color:#4a423c; margin-bottom:14px; }
+.adm-field input, .adm-field select, .adm-field textarea{ margin-top:5px; font-weight:400; }
+.adm-upload{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:-4px 0 16px; }
+.adm-upload input[type=file]{ flex:1; min-width:180px; padding:7px; font-size:12.5px; }
+.adm-modal__actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:4px; }
+
+/* ---- cấu hình âm thanh ---- */
+.adm-check{ display:flex; align-items:flex-start; gap:9px; font-size:14px; color:#4a423c; margin:2px 0 16px; cursor:pointer; }
+.adm-check input{ width:auto; margin-top:2px; flex:none; }
+.adm-fieldset{ border:1px solid var(--line); border-radius:11px; padding:14px 16px 2px; margin:0 0 16px; background:#fcfbfa; }
+.adm-fieldset legend{ padding:0 8px; font-size:13.5px; font-weight:700; color:var(--orange-d); }
+.adm-fieldset .adm-field:last-child{ margin-bottom:14px; }
+#sBgVol, #sPopVol, #sDuck{ max-width:140px; }
+
+@media (max-width:560px){
+  .adm-item{ flex-wrap:wrap; }
+  .adm-item__actions{ width:100%; }
+}
