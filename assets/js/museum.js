@@ -250,9 +250,11 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
         mesh.userData = Object.assign({}, mesh.userData, {
           title: info.title || id,
           desc: info.desc || '',
+          descEn: info.descEn || '',
           link: info.link || '',
           mediaType: info.type || 'image',
           mediaSrc: info.src || '',
+          thumb: info.thumb || '',
         });
         if (products.indexOf(mesh) === -1) products.push(mesh);
       }
@@ -281,20 +283,44 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
           () => { }   // thumbnail lỗi -> để bảng mặc định, vẫn click mở popup
         );
       } else if (embedUrl(info.src)) {
-        /* Vimeo/nền tảng khác: không phủ được lên bề mặt -> để bảng mặc định, vẫn click mở popup */
+        /* Vimeo/nền tảng khác: dùng thumbnail nếu có, không thì để bảng mặc định */
+        if (info.thumb) {
+          texLoader.load(info.thumb,
+            (tex) => { tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false; setAll(tex); },
+            undefined, () => { }
+          );
+        }
       } else {
-        // file video trực tiếp (.mp4…) -> phát ngay trên bề mặt bảng
-        // Xóa video cũ (nếu có) trước khi tạo mới
-        entries.forEach(({ mesh, matIndex }) => disposeOldBoardMedia(mesh, matIndex));
-        const v = document.createElement('video');
-        v.src = info.src; v.loop = true; v.muted = true;
-        v.crossOrigin = 'anonymous'; v.playsInline = true;
-        v.play().catch(() => { });
-        const vt = new THREE.VideoTexture(v);
-        vt.colorSpace = THREE.SRGBColorSpace;
-        // Video texture: flipY = false để giữ đúng hướng trên GLTF
-        vt.flipY = false;
-        setAll(vt);
+        // file video trực tiếp (.mp4…) – dùng thumbnail nếu có, fallback VideoTexture
+        if (info.thumb) {
+          // Có ảnh đại diện: phủ ảnh tĩnh lên bảng, video phát trong popup
+          texLoader.load(info.thumb,
+            (tex) => { tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false; setAll(tex); },
+            undefined,
+            () => {
+              // Thumbnail lỗi -> fallback VideoTexture
+              entries.forEach(({ mesh, matIndex }) => disposeOldBoardMedia(mesh, matIndex));
+              const v = document.createElement('video');
+              v.src = info.src; v.loop = true; v.muted = true;
+              v.crossOrigin = 'anonymous'; v.playsInline = true;
+              v.play().catch(() => { });
+              const vt = new THREE.VideoTexture(v);
+              vt.colorSpace = THREE.SRGBColorSpace; vt.flipY = false;
+              setAll(vt);
+            }
+          );
+        } else {
+          // Không có thumbnail -> phát video thẳng lên bề mặt bảng
+          entries.forEach(({ mesh, matIndex }) => disposeOldBoardMedia(mesh, matIndex));
+          const v = document.createElement('video');
+          v.src = info.src; v.loop = true; v.muted = true;
+          v.crossOrigin = 'anonymous'; v.playsInline = true;
+          v.play().catch(() => { });
+          const vt = new THREE.VideoTexture(v);
+          vt.colorSpace = THREE.SRGBColorSpace;
+          vt.flipY = false;
+          setAll(vt);
+        }
       }
     } else {
       texLoader.load(
@@ -850,12 +876,49 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
   }
 
   /* ----------------------- Bảng thông tin SP ---------------------- */
+
+
+  let _panelLang = 'vi';  // ngôn ngữ panel hiện tại
+  let _curProduct = null; // dữ liệu sản phẩm đang hiển thị
+
+  const PANEL_LABELS = {
+    vi: { product: 'Sản phẩm', description: 'Mô tả', detail: 'Xem chi tiết →' },
+    en: { product: 'Product',  description: 'Description', detail: 'View Details →' },
+  };
+
+  function applyPanelLang(lang) {
+    _panelLang = lang;
+    const d = _curProduct || {};
+    const L = PANEL_LABELS[lang] || PANEL_LABELS.vi;
+
+    // Nút toggle active
+    productPanel.querySelectorAll('.pp-lang-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+
+    // Cập nhật tất cả label (data-vi = key nhận dạng)
+    productPanel.querySelectorAll('[data-vi]').forEach(el => {
+      const isProduct = el.dataset.vi === 'Sản phẩm';
+      el.textContent = isProduct ? L.product : L.description;
+    });
+
+    // Nội dung tiêu đề + mô tả
+    const titleEl = productPanel.querySelector('#product-title');
+    const descEl  = productPanel.querySelector('#product-desc');
+    if (titleEl) titleEl.textContent = d.title || L.product;
+    if (descEl)  descEl.textContent  = lang === 'en' ? (d.descEn || d.desc || '') : (d.desc || '');
+
+    // Link text
+    const link = productPanel.querySelector('#product-link');
+    if (link && !link.hidden) link.textContent = L.detail;
+  }
+
   function openProduct(d) {
     d = d || {};
-    productPanel.querySelector('#product-title').textContent = d.title || 'Sản phẩm';
-    productPanel.querySelector('#product-desc').textContent = d.desc || '';
+    _curProduct = d;
+    _panelLang  = 'vi';  // reset về VN khi mở popup mới
 
-    // Media: ảnh hoặc video (nếu admin có gắn src)
+    // Media: ảnh hoặc video
     const media = productPanel.querySelector('#product-media');
     if (media) {
       media.innerHTML = '';
@@ -863,17 +926,16 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
         let node;
         const emb = (d.mediaType === 'video') ? embedUrl(d.mediaSrc) : null;
         if (emb) {
-          // YouTube/Vimeo -> nhúng khung iframe (phát ngay trong popup)
           node = document.createElement('iframe');
           node.src = emb;
           node.setAttribute('allow', 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture');
           node.setAttribute('allowfullscreen', '');
           node.setAttribute('loading', 'lazy');
         } else if (d.mediaType === 'video') {
-          // file video trực tiếp (.mp4…)
           node = document.createElement('video');
           node.src = d.mediaSrc; node.controls = true; node.loop = true;
           node.muted = true; node.playsInline = true;
+          if (d.thumb) node.poster = d.thumb; // ảnh poster tránh màn đen
         } else {
           node = document.createElement('img');
           node.src = d.mediaSrc; node.alt = d.title || '';
@@ -885,25 +947,41 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
       }
     }
 
-    // Link "Xem chi tiết" (nếu có)
+    // Link "Xem chi tiết"
     const link = productPanel.querySelector('#product-link');
     if (link) {
       if (d.link) { link.href = d.link; link.hidden = false; }
       else { link.removeAttribute('href'); link.hidden = true; }
     }
 
+    // Hiện/ẩn nút toggle ngôn ngữ (chỉ hiện khi có descEn)
+    const toggle = productPanel.querySelector('#pp-lang-toggle');
+    if (toggle) toggle.style.display = d.descEn ? '' : 'none';
+
+    // Áp dụng ngôn ngữ VN
+    applyPanelLang('vi');
+
     productPanel.classList.add('is-open');
     productPanel.setAttribute('aria-hidden', 'false');
-
-    // Âm thanh: phát âm báo popup + hạ nhỏ nhạc nền để người xem tập trung vào popup
     audio.popup();
     audio.duck();
   }
+
+  // Nút đóng panel
   productPanel.querySelector('.product-panel__close')
     .addEventListener('click', () => {
       productPanel.classList.remove('is-open');
-      audio.unduck();           // trả lại âm lượng nhạc nền
+      audio.unduck();
     });
+
+  // Nút toggle ngôn ngữ VN/EN
+  const _langToggle = productPanel.querySelector('#pp-lang-toggle');
+  if (_langToggle) {
+    _langToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('.pp-lang-btn');
+      if (btn) applyPanelLang(btn.dataset.lang);
+    });
+  }
 
   /* ------------- Dev HUD: lấy toạ độ điểm xuất phát --------------- */
   let hud = null;

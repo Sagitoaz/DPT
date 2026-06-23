@@ -1,5 +1,5 @@
 /* =====================================================================
-   admin.js – Quản trị nội dung Bảo tàng số 3D
+   admin.js – Quản trị nội dung Bảo tàng số 3D  (v7)
    Lưu trữ: GitHub Contents API (commit thẳng assets/data/exhibits.json).
    Cơ chế: admin nhập fine-grained token (Contents: read+write cho repo này),
    token lưu ở localStorage. "Lưu lên web" = PUT file -> Pages tự build lại.
@@ -19,7 +19,7 @@
   var TOKEN_KEY = 'webdpt_gh_token';
 
   /* ----------------------------- Trạng thái --------------------------- */
-  var exhibits = {};      // { board_id: {type, src, title, desc, link} }
+  var exhibits = {};      // { board_id: {type, src, thumb, title, desc, descEn, link} }
   var dataSha = null;     // sha hiện tại của exhibits.json (cần để cập nhật)
   var editingId = null;   // đang sửa bảng nào (null = thêm mới)
   var settings = null;    // { sound: {...} } – cấu hình âm thanh
@@ -42,6 +42,7 @@
   var setTokenStatus = function (m, e) { setStatus($('tokenStatus'), m, e); };
   var setSaveStatus = function (m, e) { setStatus($('saveStatus'), m, e); };
   var setUploadStatus = function (m, e) { setStatus($('uploadStatus'), m, e); };
+  var setThumbStatus = function (m, e) { setStatus($('uploadThumbStatus'), m, e); };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
@@ -76,12 +77,10 @@
     fetch(API + DATA_PATH + '?ref=' + BRANCH + '&t=' + Date.now(), { headers: headers() })
       .then(function (res) {
         if (res.status === 404) {
-          // Repo riêng tư: 404 khi CHƯA có token thường là "thiếu quyền đọc", không
-          // phải file vắng. Phân biệt 2 trường hợp để báo cho đúng.
           exhibits = {}; dataSha = null;
           setSaveStatus(token()
             ? 'Chưa có exhibits.json trên repo — bắt đầu với danh sách trống.'
-            : 'Repo riêng tư: nhập token ở bước 1 rồi bấm “Lưu & kiểm tra” để tải nội dung.', !token());
+            : 'Repo riêng tư: nhập token ở bước 1 rồi bấm "Lưu & kiểm tra" để tải nội dung.', !token());
           renderList(); return null;
         }
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -123,12 +122,9 @@
   function saveData() {
     if (!token()) { setSaveStatus('Cần nhập token GitHub ở bước 1 trước khi lưu.', true); return; }
     setSaveStatus('Đang lưu lên GitHub…');
-    // Nếu chưa có sha (vd loadData lỗi mạng nhưng file đã tồn tại) -> lấy sha trước
-    // để PUT không bị 422 "sha required".
     var ensure = dataSha ? Promise.resolve() : refreshSha();
     ensure.then(putData)
       .then(function (res) {
-        // 409 = sha cũ (ai đó vừa sửa) -> lấy sha mới rồi thử lại 1 lần
         if (res.status === 409) { return refreshSha().then(putData); }
         return res;
       })
@@ -167,6 +163,26 @@
     });
   }
 
+  /* Upload thumbnail riêng cho video */
+  function uploadThumb(file) {
+    var idRaw = ($('fId').value || 'board').trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'board';
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    var name = idRaw + '_thumb_' + Date.now() + '.' + ext;
+    var path = MEDIA_DIR + '/' + name;
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(String(fr.result).split(',')[1]); };
+      fr.onerror = function () { reject(new Error('không đọc được file')); };
+      fr.readAsDataURL(file);
+    }).then(function (b64) {
+      var body = { message: 'admin: upload thumb ' + name, content: b64, branch: BRANCH };
+      return fetch(API + path, { method: 'PUT', headers: headers(true), body: JSON.stringify(body) });
+    }).then(function (res) {
+      if (!res.ok) return res.text().then(function (t) { throw new Error('HTTP ' + res.status + ' – ' + t.slice(0, 160)); });
+      return path;
+    });
+  }
+
   /* ====================== Cấu hình ÂM THANH (settings.json) ====================== */
   function defaultSound() {
     return { enabled: true, bgSrc: '', bgVolume: 0.4, popupSrc: '', popupVolume: 0.7, duck: 0.2 };
@@ -197,7 +213,7 @@
     setStatus($('soundStatus'), 'Đang tải cấu hình âm thanh…');
     fetch(API + SETTINGS_PATH + '?ref=' + BRANCH + '&t=' + Date.now(), { headers: headers() })
       .then(function (res) {
-        if (res.status === 404) {   // chưa có settings.json -> dùng mặc định
+        if (res.status === 404) {
           settings = { sound: defaultSound() }; settingsSha = null;
           fillSoundForm(); setStatus($('soundStatus'), 'Chưa có cấu hình — đang dùng mặc định.');
           return null;
@@ -286,7 +302,7 @@
       if (MB > 25) { setStatus(st, 'File ' + MB.toFixed(1) + 'MB > 25MB — quá lớn. Hãy nén hoặc dùng link trực tiếp.', true); return; }
       setStatus(st, 'Đang tải lên repo…');
       uploadAudioFile(f, kind)
-        .then(function (path) { $(srcId).value = path; setStatus(st, '✓ Đã tải lên: ' + path + ' — nhớ bấm “⬆ Lưu âm thanh”.'); })
+        .then(function (path) { $(srcId).value = path; setStatus(st, '✓ Đã tải lên: ' + path + ' — nhớ bấm "⬆ Lưu âm thanh".'); })
         .catch(function (e) { setStatus(st, 'Tải lên thất bại: ' + e.message, true); });
     };
   }
@@ -316,15 +332,24 @@
     var wrap = $('boardList');
     var ids = Object.keys(exhibits);
     if (!ids.length) {
-      wrap.innerHTML = '<p class="adm-empty">Chưa có bảng nào. Bấm “＋ Thêm bảng”.</p>';
+      wrap.innerHTML = '<p class="adm-empty">Chưa có bảng nào. Bấm "＋ Thêm bảng".</p>';
       return;
     }
     wrap.innerHTML = ids.map(function (id) {
       var it = exhibits[id] || {};
       var thumb;
-      if (it.src && it.type === 'video') thumb = '<div class="adm-thumb adm-thumb--video">🎬</div>';
-      else if (it.src) thumb = '<img class="adm-thumb" src="' + escAttr(it.src) + '" alt="" onerror="this.style.display=\'none\'" />';
-      else thumb = '<div class="adm-thumb adm-thumb--empty">—</div>';
+      if (it.type === 'video') {
+        // Ưu tiên thumbnail do admin cung cấp, fallback icon 🎬
+        if (it.thumb) {
+          thumb = '<img class="adm-thumb" src="' + escAttr(it.thumb) + '" alt="" onerror="this.outerHTML=\'<div class=\\"adm-thumb adm-thumb--video\\">🎬</div>\'" />';
+        } else {
+          thumb = '<div class="adm-thumb adm-thumb--video">🎬</div>';
+        }
+      } else if (it.src) {
+        thumb = '<img class="adm-thumb" src="' + escAttr(it.src) + '" alt="" onerror="this.style.display=\'none\'" />';
+      } else {
+        thumb = '<div class="adm-thumb adm-thumb--empty">—</div>';
+      }
       return '<div class="adm-item">' + thumb +
         '<div class="adm-item__body">' +
           '<div class="adm-item__id">' + esc(id) + ' <span class="adm-tag">' + esc(it.type || 'image') + '</span></div>' +
@@ -345,6 +370,12 @@
     });
   }
 
+  /* ---- Hiện/ẩn khu thumbnail theo loại nội dung ---- */
+  function syncThumbRow() {
+    var isVideo = $('fType').value === 'video';
+    $('fThumbRow').style.display = isVideo ? '' : 'none';
+  }
+
   /* ------------------------------ Form -------------------------------- */
   function openForm(id) {
     editingId = id || null;
@@ -354,11 +385,16 @@
     $('fId').disabled = !!id;   // sửa thì khoá mã (đổi mã = xoá + thêm)
     $('fType').value = it.type || 'image';
     $('fSrc').value = it.src || '';
+    $('fThumb').value = it.thumb || '';
     $('fTitle').value = it.title || '';
     $('fDesc').value = it.desc || '';
+    $('fDescEn').value = it.descEn || '';
     $('fLink').value = it.link || '';
     $('fFile').value = '';
+    $('fThumbFile').value = '';
     setUploadStatus('');
+    setThumbStatus('');
+    syncThumbRow();
     $('formModal').hidden = false;
   }
   function closeForm() { $('formModal').hidden = true; }
@@ -366,24 +402,30 @@
   function saveForm() {
     var id = $('fId').value.trim();
     if (!/^[a-zA-Z0-9_]+$/.test(id)) { alert('Mã bảng chỉ gồm chữ, số và gạch dưới (ví dụ: Image_Board_01).'); return; }
-    if (!editingId && exhibits[id] && !confirm('Mã “' + id + '” đã tồn tại. Ghi đè?')) return;
+    if (!editingId && exhibits[id] && !confirm('Mã "' + id + '" đã tồn tại. Ghi đè?')) return;
     exhibits[id] = {
       type: $('fType').value,
       src: $('fSrc').value.trim(),
+      thumb: $('fThumb').value.trim(),
       title: $('fTitle').value.trim(),
       desc: $('fDesc').value.trim(),
+      descEn: $('fDescEn').value.trim(),
       link: $('fLink').value.trim()
     };
+    // Xoá trường rỗng để giữ JSON gọn
+    if (!exhibits[id].thumb) delete exhibits[id].thumb;
+    if (!exhibits[id].descEn) delete exhibits[id].descEn;
+    if (!exhibits[id].link) delete exhibits[id].link;
     closeForm();
     renderList();
-    setSaveStatus('Đã cập nhật tạm trong trình duyệt. Nhớ bấm “⬆ Lưu lên web” để đẩy lên.');
+    setSaveStatus('Đã cập nhật tạm trong trình duyệt. Nhớ bấm "⬆ Lưu lên web" để đẩy lên.');
   }
 
   function delBoard(id) {
-    if (!confirm('Xoá bảng “' + id + '” khỏi danh sách?')) return;
+    if (!confirm('Xoá bảng "' + id + '" khỏi danh sách?')) return;
     delete exhibits[id];
     renderList();
-    setSaveStatus('Đã xoá “' + id + '” khỏi danh sách. Nhớ bấm “⬆ Lưu lên web”.');
+    setSaveStatus('Đã xoá "' + id + '" khỏi danh sách. Nhớ bấm "⬆ Lưu lên web".');
   }
 
   /* ------------------------------ Init -------------------------------- */
@@ -402,6 +444,11 @@
     $('formClose').onclick = closeForm;
     $('formCancel').onclick = closeForm;
     $('formSave').onclick = saveForm;
+
+    // Hiện/ẩn khu thumbnail khi chuyển loại
+    $('fType').onchange = syncThumbRow;
+
+    // Upload media chính
     $('uploadBtn').onclick = function () {
       var f = $('fFile').files[0];
       if (!f) { setUploadStatus('Chọn file ảnh/video trước.', true); return; }
@@ -416,12 +463,29 @@
       uploadMedia(f)
         .then(function (path) {
           $('fSrc').value = path;
-          if (/^video\//.test(f.type)) $('fType').value = 'video';     // tự chọn Loại = Video
-          else if (/^image\//.test(f.type)) $('fType').value = 'image';
+          if (/^video\//.test(f.type)) { $('fType').value = 'video'; syncThumbRow(); }
+          else if (/^image\//.test(f.type)) { $('fType').value = 'image'; syncThumbRow(); }
           setUploadStatus('✓ Đã tải lên: ' + path);
         })
         .catch(function (e) { setUploadStatus('Tải lên thất bại: ' + e.message, true); });
     };
+
+    // Upload thumbnail video
+    $('uploadThumbBtn').onclick = function () {
+      var f = $('fThumbFile').files[0];
+      if (!f) { setThumbStatus('Chọn file ảnh trước.', true); return; }
+      if (!token()) { setThumbStatus('Cần token ở bước 1 trước.', true); return; }
+      var MB = f.size / (1024 * 1024);
+      if (MB > 10) { setThumbStatus('File thumbnail ' + MB.toFixed(1) + 'MB khá nặng (nên < 1MB). Vẫn tải lên?'); }
+      setThumbStatus('Đang tải thumbnail lên repo…');
+      uploadThumb(f)
+        .then(function (path) {
+          $('fThumb').value = path;
+          setThumbStatus('✓ Đã tải lên: ' + path);
+        })
+        .catch(function (e) { setThumbStatus('Tải lên thất bại: ' + e.message, true); });
+    };
+
     $('formModal').addEventListener('click', function (e) {
       if (e.target === $('formModal')) closeForm();   // click nền tối -> đóng
     });

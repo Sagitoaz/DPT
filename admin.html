@@ -74,7 +74,7 @@
       </div>
       <p class="adm-hint">
         Nhạc nền phát khi vào phòng 3D và âm báo khi mở popup sản phẩm. Khi popup mở, nhạc nền tự nhỏ lại để người xem tập trung. Người xem có nút <b>🔊</b> ở góc trên để bật/tắt.
-        Để <b>trống</b> ô đường dẫn nhạc nền → dùng tiếng nền êm dịu tổng hợp sẵn; để trống ô âm báo popup → dùng tiếng “pop” mặc định.
+        Để <b>trống</b> ô đường dẫn nhạc nền → dùng tiếng nền êm dịu tổng hợp sẵn; để trống ô âm báo popup → dùng tiếng "pop" mặc định.
       </p>
       <p id="soundStatus" class="adm-status"></p>
 
@@ -99,7 +99,7 @@
 
       <fieldset class="adm-fieldset">
         <legend>Âm báo khi mở popup</legend>
-        <label class="adm-field">Đường dẫn âm báo <span class="adm-muted">(mp3/ogg; để trống = tiếng “pop” mặc định)</span>
+        <label class="adm-field">Đường dẫn âm báo <span class="adm-muted">(mp3/ogg; để trống = tiếng "pop" mặc định)</span>
           <input id="sPopSrc" placeholder="assets/audio/popup.mp3  hoặc  https://…" autocomplete="off" />
         </label>
         <div class="adm-upload">
@@ -145,17 +145,33 @@
         <button id="uploadBtn" class="adm-btn adm-btn--ghost" type="button">Tải ảnh/video lên repo</button>
         <span id="uploadStatus" class="adm-status"></span>
       </div>
-      <p class="adm-hint" style="margin-top:-8px"><b>Ảnh:</b> nên tải lên repo (hiện chắc chắn). <b>Video:</b> tải file mp4 &lt;50MB lên repo, <b>HOẶC dán link YouTube</b> (popup sẽ nhúng phát được). <b>Không dùng link Google Drive / SharePoint “stream”</b> cho ô này — đó là trang xem, không nhúng được (cứ để link đó ở ô “Xem chi tiết”).</p>
+      <p class="adm-hint" style="margin-top:-8px"><b>Ảnh:</b> nên tải lên repo (hiện chắc chắn). <b>Video:</b> tải file mp4 &lt;50MB lên repo, <b>HOẶC dán link YouTube</b> (popup sẽ nhúng phát được). <b>Không dùng link Google Drive / SharePoint "stream"</b> cho ô này — đó là trang xem, không nhúng được (cứ để link đó ở ô "Xem chi tiết").</p>
+
+      <!-- Ảnh đại diện video: hiện khi loại = video -->
+      <div id="fThumbRow" style="display:none">
+        <label class="adm-field">Ảnh đại diện (thumbnail) cho video <span class="adm-muted">(tuỳ chọn – tránh hiển thị đen sì khi phát trên bảng 3D)</span>
+          <input id="fThumb" placeholder="assets/exhibits/abc_thumb.jpg  hoặc  https://…" autocomplete="off" />
+        </label>
+        <div class="adm-upload">
+          <input id="fThumbFile" type="file" accept="image/*" />
+          <button id="uploadThumbBtn" class="adm-btn adm-btn--ghost" type="button">Tải thumbnail lên repo</button>
+          <span id="uploadThumbStatus" class="adm-status"></span>
+        </div>
+      </div>
 
       <label class="adm-field">Tiêu đề
         <input id="fTitle" autocomplete="off" />
       </label>
 
-      <label class="adm-field">Mô tả
+      <label class="adm-field">Mô tả <span class="adm-muted">(Tiếng Việt)</span>
         <textarea id="fDesc" rows="3"></textarea>
       </label>
 
-      <label class="adm-field">Link “Xem chi tiết” <span class="adm-muted">(tuỳ chọn)</span>
+      <label class="adm-field">Mô tả <span class="adm-muted">(English)</span>
+        <textarea id="fDescEn" rows="3" placeholder="English description (optional)"></textarea>
+      </label>
+
+      <label class="adm-field">Link "Xem chi tiết" <span class="adm-muted">(tuỳ chọn)</span>
         <input id="fLink" placeholder="https://…" autocomplete="off" />
       </label>
 
@@ -163,10 +179,10 @@
         <button id="formCancel" class="adm-btn adm-btn--ghost" type="button">Huỷ</button>
         <button id="formSave" class="adm-btn adm-btn--primary" type="button">Lưu vào danh sách</button>
       </div>
-      <p class="adm-hint">* “Lưu vào danh sách” chỉ cập nhật tạm trong trình duyệt. Bấm <b>⬆ Lưu lên web</b> để đẩy lên repo và hiển thị trên web.</p>
+      <p class="adm-hint">* "Lưu vào danh sách" chỉ cập nhật tạm trong trình duyệt. Bấm <b>⬆ Lưu lên web</b> để đẩy lên repo và hiển thị trên web.</p>
     </div>
   </div>
 
-  <script src="assets/js/admin.js?v=6"></script>
+  <script src="assets/js/admin.js?v=7"></script>
 </body>
 </html>
