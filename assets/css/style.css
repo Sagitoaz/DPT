@@ -288,6 +288,8 @@ a{ color:inherit; }
 
 .product-panel h3{ margin:0; color:var(--dark); font-size:20px; line-height:1.3; }
 .product-panel p{ margin:0; font-size:14px; color:#444; line-height:1.65; }
+/* Giữ nguyên xuống dòng trong mô tả (khớp với nội dung nhập ở admin) */
+#product-desc{ white-space:pre-wrap; word-break:break-word; }
 .product-panel__close{
   position:absolute; top:12px; right:14px; border:none; background:none;
   font-size:18px; cursor:pointer; color:#aaa; transition:color .15s;

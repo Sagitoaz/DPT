@@ -44,6 +44,35 @@
   var setUploadStatus = function (m, e) { setStatus($('uploadStatus'), m, e); };
   var setThumbStatus = function (m, e) { setStatus($('uploadThumbStatus'), m, e); };
 
+  /* Copy đường dẫn ra clipboard, dùng sau khi upload thành công */
+  function copyPath(path, btnEl) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(path).then(function () {
+        var orig = btnEl.textContent;
+        btnEl.textContent = '✓';
+        setTimeout(function () { btnEl.textContent = orig; }, 1400);
+      }).catch(function () { prompt('Copy đường dẫn này:', path); });
+    } else {
+      prompt('Copy đường dẫn này:', path);
+    }
+  }
+
+  /* Hiển thị thông báo upload thành công kèm nút 📋 copy */
+  function setUploadOk(statusEl, path) {
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    statusEl.classList.remove('is-error');
+    var span = document.createElement('span');
+    span.textContent = '✓ Đã tải lên: ' + path + ' ';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = '📋 Copy đường dẫn';
+    btn.style.cssText = 'font-size:12px;padding:2px 8px;cursor:pointer;border:1px solid #ccc;border-radius:5px;background:#fff;margin-left:4px;';
+    btn.onclick = function () { copyPath(path, btn); };
+    statusEl.appendChild(span);
+    statusEl.appendChild(btn);
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
@@ -335,38 +364,92 @@
       wrap.innerHTML = '<p class="adm-empty">Chưa có bảng nào. Bấm "＋ Thêm bảng".</p>';
       return;
     }
-    wrap.innerHTML = ids.map(function (id) {
+    wrap.innerHTML = '';   // xoá cũ
+
+    ids.forEach(function (id) {
       var it = exhibits[id] || {};
-      var thumb;
-      if (it.type === 'video') {
-        // Ưu tiên thumbnail do admin cung cấp, fallback icon 🎬
-        if (it.thumb) {
-          thumb = '<img class="adm-thumb" src="' + escAttr(it.thumb) + '" alt="" onerror="this.outerHTML=\'<div class=\\"adm-thumb adm-thumb--video\\">🎬</div>\'" />';
-        } else {
-          thumb = '<div class="adm-thumb adm-thumb--video">🎬</div>';
-        }
+
+      // --- Thumbnail ---
+      var thumbEl;
+      if (it.type === 'video' && it.thumb) {
+        thumbEl = document.createElement('img');
+        thumbEl.className = 'adm-thumb';
+        thumbEl.alt = '';
+        thumbEl.src = it.thumb;
+        thumbEl.onerror = function () {
+          var fallback = document.createElement('div');
+          fallback.className = 'adm-thumb adm-thumb--video';
+          fallback.textContent = '🎬';
+          thumbEl.parentNode && thumbEl.parentNode.replaceChild(fallback, thumbEl);
+        };
+      } else if (it.type === 'video') {
+        thumbEl = document.createElement('div');
+        thumbEl.className = 'adm-thumb adm-thumb--video';
+        thumbEl.textContent = '🎬';
       } else if (it.src) {
-        thumb = '<img class="adm-thumb" src="' + escAttr(it.src) + '" alt="" onerror="this.style.display=\'none\'" />';
+        thumbEl = document.createElement('img');
+        thumbEl.className = 'adm-thumb';
+        thumbEl.alt = '';
+        thumbEl.src = it.src;
+        thumbEl.onerror = function () { thumbEl.style.display = 'none'; };
       } else {
-        thumb = '<div class="adm-thumb adm-thumb--empty">—</div>';
+        thumbEl = document.createElement('div');
+        thumbEl.className = 'adm-thumb adm-thumb--empty';
+        thumbEl.textContent = '—';
       }
-      return '<div class="adm-item">' + thumb +
-        '<div class="adm-item__body">' +
-          '<div class="adm-item__id">' + esc(id) + ' <span class="adm-tag">' + esc(it.type || 'image') + '</span></div>' +
-          '<div class="adm-item__title">' + esc(it.title || '(chưa có tiêu đề)') + '</div>' +
-          '<div class="adm-item__desc">' + esc(it.desc || '') + '</div>' +
-        '</div>' +
-        '<div class="adm-item__actions">' +
-          '<button class="adm-btn adm-btn--ghost" data-edit="' + escAttr(id) + '">Sửa</button>' +
-          '<button class="adm-btn adm-btn--danger" data-del="' + escAttr(id) + '">Xoá</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-    wrap.querySelectorAll('[data-edit]').forEach(function (b) {
-      b.onclick = function () { openForm(b.getAttribute('data-edit')); };
-    });
-    wrap.querySelectorAll('[data-del]').forEach(function (b) {
-      b.onclick = function () { delBoard(b.getAttribute('data-del')); };
+
+      // --- Body ---
+      var bodyEl = document.createElement('div');
+      bodyEl.className = 'adm-item__body';
+
+      var idEl = document.createElement('div');
+      idEl.className = 'adm-item__id';
+      idEl.textContent = id + ' ';
+      var tagEl = document.createElement('span');
+      tagEl.className = 'adm-tag';
+      tagEl.textContent = it.type || 'image';
+      idEl.appendChild(tagEl);
+
+      var titleEl = document.createElement('div');
+      titleEl.className = 'adm-item__title';
+      titleEl.textContent = it.title || '(chưa có tiêu đề)';
+
+      var descEl = document.createElement('div');
+      descEl.className = 'adm-item__desc';
+      // Hiện một dòng: thay \n bằng khoảng trắng để không vỡ layout item
+      descEl.textContent = (it.desc || '').replace(/\n+/g, ' ').trim();
+
+      bodyEl.appendChild(idEl);
+      bodyEl.appendChild(titleEl);
+      bodyEl.appendChild(descEl);
+
+      // --- Actions ---
+      var actEl = document.createElement('div');
+      actEl.className = 'adm-item__actions';
+
+      var editBtn = document.createElement('button');
+      editBtn.className = 'adm-btn adm-btn--ghost';
+      editBtn.type = 'button';
+      editBtn.textContent = 'Sửa';
+      editBtn.onclick = (function (bid) { return function () { openForm(bid); }; })(id);
+
+      var delBtn = document.createElement('button');
+      delBtn.className = 'adm-btn adm-btn--danger';
+      delBtn.type = 'button';
+      delBtn.textContent = 'Xoá';
+      delBtn.onclick = (function (bid) { return function () { delBoard(bid); }; })(id);
+
+      actEl.appendChild(editBtn);
+      actEl.appendChild(delBtn);
+
+      // --- Item ---
+      var itemEl = document.createElement('div');
+      itemEl.className = 'adm-item';
+      itemEl.appendChild(thumbEl);
+      itemEl.appendChild(bodyEl);
+      itemEl.appendChild(actEl);
+
+      wrap.appendChild(itemEl);
     });
   }
 
@@ -465,7 +548,7 @@
           $('fSrc').value = path;
           if (/^video\//.test(f.type)) { $('fType').value = 'video'; syncThumbRow(); }
           else if (/^image\//.test(f.type)) { $('fType').value = 'image'; syncThumbRow(); }
-          setUploadStatus('✓ Đã tải lên: ' + path);
+          setUploadOk($('uploadStatus'), path);
         })
         .catch(function (e) { setUploadStatus('Tải lên thất bại: ' + e.message, true); });
     };
@@ -481,7 +564,7 @@
       uploadThumb(f)
         .then(function (path) {
           $('fThumb').value = path;
-          setThumbStatus('✓ Đã tải lên: ' + path);
+          setUploadOk($('uploadThumbStatus'), path);
         })
         .catch(function (e) { setThumbStatus('Tải lên thất bại: ' + e.message, true); });
     };
