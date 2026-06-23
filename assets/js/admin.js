@@ -8,8 +8,8 @@
   'use strict';
 
   /* ----------------------------- Cấu hình ----------------------------- */
-  var OWNER = 'Rei-1407';
-  var REPO = 'Web-DPT';
+  var OWNER = 'Sagitoaz';
+  var REPO = 'DPT';
   var BRANCH = 'main';
   var DATA_PATH = 'assets/data/exhibits.json';
   var SETTINGS_PATH = 'assets/data/settings.json';
