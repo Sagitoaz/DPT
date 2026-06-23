@@ -334,5 +334,12 @@
     "title": "Bảng chỉ dẫn tham quan Bảo tàng số Khoa Đa phương tiện",
     "desc": "",
     "link": ""
+  },
+  "Image_Board_Top_10": {
+    "type": "video",
+    "src": "",
+    "title": "",
+    "desc": "",
+    "link": ""
   }
 }
