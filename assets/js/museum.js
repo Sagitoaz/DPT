@@ -417,6 +417,12 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
     }
 
     mat.map = tex;
+    // Khi bảng có media từ exhibits.json, tắt ảnh emissive được nhúng sẵn
+    // trong GLB. Nếu giữ emissiveMap gốc, ảnh Blender sẽ tiếp tục phát sáng
+    // phía sau ảnh mới và tạo cảm giác hai ảnh chồng/mờ lên nhau.
+    mat.emissiveMap = null;
+    if (mat.emissive) mat.emissive.set(0x000000);
+    if ('emissiveIntensity' in mat) mat.emissiveIntensity = 0;
     mat._boardTex = tex;     // đánh dấu để dispose lần sau
     if (mat.color) mat.color.set(0xffffff);
     mat.needsUpdate = true;
