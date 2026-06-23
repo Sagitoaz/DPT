@@ -108,7 +108,7 @@ document.addEventListener('keydown', (e) => {
 
   // Các phần tử sẽ "xuất hiện" trong mỗi panel, theo thứ tự stagger.
   const REVEAL_SELECTOR = [
-    '.hero__logo', '.hero__eyebrow', '.hero__title', '.hero__band', '.hero__subtitle', '.hero .btn',
+    '.hero__logo-wrap', '.hero__eyebrow', '.hero__title', '.hero__band', '.hero__subtitle', '.hero .btn',
     '.intro .split-title', '.intro__text p',
     '.room-stage__head .split-title', '.room',
     '.guide .split-title', '.guide__lead', '.guide__step', '.guide__cta',

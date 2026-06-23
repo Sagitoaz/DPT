@@ -82,7 +82,14 @@ a{ color:inherit; }
    nằm PHÍA TRÊN dải sóng. padding-bottom dùng vw nên tự co giãn (responsive). */
 .hero{ text-align:center; overflow:hidden; height:100vh; justify-content:center; padding:60px 0 12vw; }
 .hero__inner{ position:relative; z-index:2; }
-.hero__logo{ width:172px; margin:0 auto 26px; }
+.hero__logo-wrap{
+  position:relative; width:clamp(230px,22vw,300px); height:clamp(130px,12.5vw,150px);
+  margin:0 auto 10px; overflow:hidden;
+}
+.hero__logo{
+  position:absolute; left:50%; top:50%; width:232%; max-width:none;
+  transform:translate(-50%,-50%);
+}
 .hero__eyebrow{
   color:var(--orange); font-weight:600; font-size:clamp(20px,2.4vw,34px);
   letter-spacing:.3em; margin:6px 0 22px; text-transform:uppercase;
