@@ -33,7 +33,7 @@ async function openMuseum() {
   if (!museumApi && !museumLoading) {
     museumLoading = true;
     try {
-    const mod = await import('./museum.js?v=18');
+    const mod = await import('./museum.js?v=19');
       museumApi = await mod.initMuseum({
         mount: document.getElementById('museum-canvas-wrap'),
         loadingEl: document.getElementById('museum-loading'),

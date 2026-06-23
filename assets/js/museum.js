@@ -338,54 +338,159 @@ export async function initMuseum({ mount, loadingEl, productPanel, soundBtn, con
     }
   }
 
-  /* Điều chỉnh texture để fit vừa khung bảng ("object-fit: contain").
-     Tính tỉ lệ thực tế của mesh (qua bounding box) và so sánh với tỉ lệ ảnh.
-     Điều chỉnh repeat + offset để ảnh không bị kéo dài và luôn canh giữa. */
+  const BOARD_WORLD_UP = new THREE.Vector3(0, 1, 0);
+
+  function textureMediaRatio(tex) {
+    const media = tex && tex.image;
+    if (!media) return 0;
+    const w = media.videoWidth || media.naturalWidth || media.width || 0;
+    const h = media.videoHeight || media.naturalHeight || media.height || 0;
+    return (w && h) ? (w / h) : 0;
+  }
+
+  function localAxisWorldDir(mesh, axisIndex) {
+    mesh.updateWorldMatrix(true, false);
+    const e = mesh.matrixWorld.elements;
+    const dir = axisIndex === 0
+      ? new THREE.Vector3(e[0], e[1], e[2])
+      : axisIndex === 1
+        ? new THREE.Vector3(e[4], e[5], e[6])
+        : new THREE.Vector3(e[8], e[9], e[10]);
+    return dir.normalize();
+  }
+
+  function getBoardResizeInfo(mesh) {
+    if (!mesh || !mesh.geometry) return null;
+
+    if (mesh.userData._boardResizeInfo) return mesh.userData._boardResizeInfo;
+
+    const geom = mesh.geometry;
+    if (!geom.boundingBox) geom.computeBoundingBox();
+    const size = new THREE.Vector3();
+    geom.boundingBox.getSize(size);
+
+    const localSizes = [size.x, size.y, size.z];
+    const maxSize = Math.max(localSizes[0], localSizes[1], localSizes[2]);
+    if (!maxSize) return null;
+
+    const activeAxes = localSizes
+      .map((value, axis) => ({ axis, value }))
+      .filter(item => item.value > maxSize * 0.01)
+      .sort((a, b) => b.value - a.value);
+
+    if (activeAxes.length < 2) return null;
+
+    // Trục dọc của bảng là trục local nào đang hướng gần nhất với world Y.
+    let verticalAxis = activeAxes[0].axis;
+    let bestUpDot = -1;
+    for (const item of activeAxes) {
+      const dot = Math.abs(localAxisWorldDir(mesh, item.axis).dot(BOARD_WORLD_UP));
+      if (dot > bestUpDot) {
+        bestUpDot = dot;
+        verticalAxis = item.axis;
+      }
+    }
+
+    // Trục ngang là trục còn lại lớn nhất trên mặt bảng.
+    const horizontalAxis = activeAxes.find(item => item.axis !== verticalAxis)?.axis;
+    if (horizontalAxis == null) return null;
+
+    const info = {
+      localSizes,
+      verticalAxis,
+      horizontalAxis,
+      originalScale: mesh.scale.clone(),
+    };
+    mesh.userData._boardResizeInfo = info;
+    return info;
+  }
+
+  function setScaleAxis(scale, axis, value) {
+    if (axis === 0) scale.x = value;
+    else if (axis === 1) scale.y = value;
+    else scale.z = value;
+  }
+
+  function getScaleAxis(scale, axis) {
+    return axis === 0 ? scale.x : axis === 1 ? scale.y : scale.z;
+  }
+
+  function matrixAxisLength(mesh, axis) {
+    mesh.updateWorldMatrix(true, false);
+    const e = mesh.matrixWorld.elements;
+    const v = axis === 0
+      ? new THREE.Vector3(e[0], e[1], e[2])
+      : axis === 1
+        ? new THREE.Vector3(e[4], e[5], e[6])
+        : new THREE.Vector3(e[8], e[9], e[10]);
+    return v.length();
+  }
+
+  function setWorldPosition(mesh, worldPosition) {
+    if (mesh.parent) {
+      const local = mesh.parent.worldToLocal(worldPosition.clone());
+      mesh.position.copy(local);
+    } else {
+      mesh.position.copy(worldPosition);
+    }
+  }
+
+  function resizeBoardToMediaRatio(mesh, ratio) {
+    const info = getBoardResizeInfo(mesh);
+    if (!info || !ratio) return;
+
+    // Luôn tính từ scale gốc để đổi ảnh nhiều lần không bị scale cộng dồn.
+    mesh.scale.copy(info.originalScale);
+    mesh.updateWorldMatrix(true, false);
+
+    const beforeCenter = new THREE.Vector3();
+    new THREE.Box3().setFromObject(mesh).getCenter(beforeCenter);
+
+    const hAxis = info.horizontalAxis;
+    const vAxis = info.verticalAxis;
+    const localWidth = info.localSizes[hAxis];
+    const localHeight = info.localSizes[vAxis];
+    if (!localWidth || !localHeight) return;
+
+    const worldWidth = localWidth * matrixAxisLength(mesh, hAxis);
+    const baseVerticalScale = getScaleAxis(info.originalScale, vAxis) || 1;
+    const parentVerticalFactor = matrixAxisLength(mesh, vAxis) / Math.abs(baseVerticalScale);
+    if (!worldWidth || !parentVerticalFactor) return;
+
+    const desiredWorldHeight = worldWidth / ratio;
+    const desiredLocalScale = desiredWorldHeight / (localHeight * parentVerticalFactor);
+    const signedScale = Math.sign(baseVerticalScale || 1) * Math.abs(desiredLocalScale);
+    setScaleAxis(mesh.scale, vAxis, signedScale);
+    mesh.updateWorldMatrix(true, false);
+
+    // Giữ tâm bảng ở vị trí cũ, tránh pivot lệch làm bảng bị trôi lên/xuống.
+    const afterCenter = new THREE.Vector3();
+    new THREE.Box3().setFromObject(mesh).getCenter(afterCenter);
+    const currentWorldPos = new THREE.Vector3();
+    mesh.getWorldPosition(currentWorldPos);
+    setWorldPosition(mesh, currentWorldPos.add(beforeCenter.sub(afterCenter)));
+    mesh.updateWorldMatrix(true, false);
+  }
+
+  /* Điều chỉnh bảng theo media: ảnh phủ đủ chiều ngang bảng, còn chiều dọc của
+     mesh tự scale theo tỉ lệ gốc để tránh bị kéo dải màu/crop/trống vùng. */
   function adjustTextureFit(tex, mesh) {
     tex.wrapS = THREE.ClampToEdgeWrapping;
     tex.wrapT = THREE.ClampToEdgeWrapping;
 
-    const img = tex.image;
-    // Nếu chưa có kích thước ảnh (video texture / đang load) -> giữ mặc định
-    if (!img || !img.width || !img.height || !mesh) {
-      tex.repeat.set(1, 1);
-      tex.offset.set(0, 0);
-      tex.needsUpdate = true;
-      return;
-    }
-
-    // Tính tỉ lệ ảnh gốc
-    const imgRatio = img.width / img.height;
-
-    // Tính tỉ lệ khung bảng thông qua bounding box của mesh
-    const box = new THREE.Box3().setFromObject(mesh);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    // Board thường nằm trong mặt phẳng XY hoặc XZ:
-    // Chọn 2 chiều lớn nhất (bỏ chiều bé nhất = chiều dày tấm bảng)
-    const dims = [size.x, size.y, size.z].sort((a, b) => b - a); // giảm dần
-    const boardW = dims[0]; // chiều rộng
-    const boardH = dims[1]; // chiều cao
-    if (!boardW || !boardH) {
-      tex.repeat.set(1, 1); tex.offset.set(0, 0); tex.needsUpdate = true; return;
-    }
-    const boardRatio = boardW / boardH;
-
-    // So sánh tỉ lệ ảnh với tỉ lệ khung: điều chỉnh repeat để "contain"
-    // (giữ nguyên tỉ lệ ảnh gốc, thêm lề trắng 2 bên nếu cần)
-    let repeatX = 1, repeatY = 1, offsetX = 0, offsetY = 0;
-    if (imgRatio > boardRatio) {
-      // Ảnh rộng hơn khung: thu nhỏ theo chiều Y để vừa chiều X
-      repeatY = imgRatio / boardRatio;
-      offsetY = (repeatY - 1) / 2;
-    } else if (imgRatio < boardRatio) {
-      // Ảnh hẹp hơn khung: thu nhỏ theo chiều X để vừa chiều Y
-      repeatX = boardRatio / imgRatio;
-      offsetX = (repeatX - 1) / 2;
-    }
-    tex.repeat.set(repeatX, repeatY);
-    tex.offset.set(-offsetX, -offsetY);
+    // Texture phủ full mặt bảng; tỉ lệ đúng được xử lý bằng cách resize mesh.
+    tex.repeat.set(1, 1);
+    tex.offset.set(0, 0);
     tex.needsUpdate = true;
+
+    const ratio = textureMediaRatio(tex);
+    if (ratio) {
+      resizeBoardToMediaRatio(mesh, ratio);
+    } else if (tex.image && 'videoWidth' in tex.image) {
+      tex.image.addEventListener('loadedmetadata', () => {
+        resizeBoardToMediaRatio(mesh, textureMediaRatio(tex));
+      }, { once: true });
+    }
   }
 
   // Giải phóng texture/video cũ của một board mesh (đúng slot) trước khi gán media mới.
